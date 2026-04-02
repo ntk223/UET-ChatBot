@@ -1,0 +1,14 @@
+version: "3.1"
+nlu:
+- intent: intent.hoi_diem_it
+  examples: |
+    - điểm chuẩn it
+    - cntt lấy mấy điểm
+    - năm ngoái it1 điểm chuẩn là bao nhiêu
+    - cho em hỏi điểm ngành mạng máy tính
+
+- intent: intent.hoi_hoc_phi
+  examples: |
+    - học phí bao nhiêu
+    - một học kỳ đóng mấy tiền
+    - học phí trường uet đắt không

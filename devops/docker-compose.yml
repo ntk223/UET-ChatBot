@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres_flowchart:
+    image: postgres:15-alpine
+    container_name: uet_pg_db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: uet_chatbot_core
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  mongo_chatlog:
+    image: mongo:6.0
+    container_name: uet_mongo_db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: secretpassword
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  pg_data:
+  mongo_data:
