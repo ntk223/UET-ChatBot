@@ -1,41 +1,70 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+const http = require("http");
+const { Server } = require("socket.io");
+const app = require("./app");
+const env = require("./config/env");
+const dialogueManager = require("./services/dialogue/dialogueManager.service");
+const { close: closePostgres } = require("./config/postgres");
+const { getRedisClient } = require("./config/redis");
 
-const initializeDatabases = require('./middleware/database');
-const webhookRoutes = require('./routes/webhook');
+const server = http.createServer(app);
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
-// ==========================================
-// MIDDLEWARE
-// ==========================================
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ==========================================
-// ROUTES
-// ==========================================
-app.use('/', webhookRoutes);
-
-// ==========================================
-// INITIALIZATION
-// ==========================================
-async function start() {
+io.on("connection", (socket) => {
+  socket.on("chat:message", async (payload = {}) => {
     try {
-        // Khởi động cả 2 Database
-        await initializeDatabases();
+      const {
+        sender_id: senderId,
+        message_text: messageText,
+        payload_value: payloadValue,
+      } = payload;
 
-        // Khởi động Server
-        app.listen(PORT, () => {
-            console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+      if (!senderId) {
+        socket.emit("chat:error", {
+          error: "sender_id is required",
         });
+        return;
+      }
+
+      const response = await dialogueManager.handleIncomingMessage({
+        senderId,
+        messageText,
+        payloadValue,
+      });
+
+      socket.emit("chat:response", response);
     } catch (error) {
-        console.error('❌ Lỗi khởi động server:', error);
-        process.exit(1);
+      socket.emit("chat:error", {
+        error: error.message || "Unable to process message",
+      });
     }
+  });
+});
+
+server.listen(env.port, () => {
+  console.log(`[server] Running on port ${env.port}`);
+});
+
+async function shutdown() {
+  try {
+    server.close();
+    await closePostgres();
+
+    const redis = getRedisClient();
+    if (redis && typeof redis.quit === "function") {
+      await redis.quit();
+    }
+
+    process.exit(0);
+  } catch (error) {
+    console.error("[server] Shutdown error:", error.message);
+    process.exit(1);
+  }
 }
 
-start();
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

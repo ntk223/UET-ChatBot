@@ -2,29 +2,38 @@ version: "3.1"
 
 stories:
 
-- story: happy path
+- story: Tu van diem chuan co ban
   steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: mood_great
-  - action: utter_happy
+    - intent: greet
+    - action: utter_greet_and_start
+    - intent: ask_admission
+    - action: utter_ask_major
+    - intent: inform_major
+    - action: utter_ask_admission_method
+    - intent: inform_method
+    - action: utter_provide_score_info
 
-- story: sad path 1
+- story: Hoi tiep hoc phi
   steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: mood_unhappy
-  - action: utter_cheer_up
-  - action: utter_did_that_help
-  - intent: affirm
-  - action: utter_happy
+    - intent: inform_method
+    - action: utter_provide_score_info
+    - intent: ask_tuition
+    - action: utter_provide_tuition_info
 
-- story: sad path 2
+- story: Ket thuc hoi thoai
   steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: mood_unhappy
-  - action: utter_cheer_up
-  - action: utter_did_that_help
-  - intent: deny
-  - action: utter_goodbye
+    - intent: goodbye
+    - action: utter_goodbye
+
+- story: Luong tiep tuc sau hoc phi
+  steps:
+    - intent: ask_tuition
+    - action: utter_provide_tuition_info
+    - intent: confirm_suitable
+    - action: utter_default
+    - intent: ask_career
+    - action: utter_career_prospects
+    - intent: ask_higher_edu
+    - action: utter_higher_edu_info
+    - intent: affirm
+    - action: utter_default

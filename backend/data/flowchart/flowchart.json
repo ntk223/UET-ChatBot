@@ -1,0 +1,155 @@
+{
+  "flowchart_id": "tuyen_sinh_v1",
+  "metadata": {
+    "school": "UET - VNU",
+    "version": "2026.1"
+  },
+  "fallbackNode": "fallback",
+  "nodes": {
+    "start": {
+      "id": "start",
+      "utterance": "utter_greet_and_start",
+      "next_nodes": {
+        "greet": "start",
+        "ask_admission": "nganh_hoc",
+        "uet_info": "thong_tin",
+        "restart": "start",
+        "goodbye": "goodbye",
+        "nlu_fallback": "fallback"
+      },
+      "buttons": [
+        {
+          "title": "Tư vấn tuyển sinh",
+          "payload": "/ask_admission"
+        },
+        {
+          "title": "Tìm hiểu về UET",
+          "payload": "/uet_info"
+        }
+
+      ],
+
+      "is_jumpable": false
+    },
+    "goodbye": {
+      "id": "goodbye",
+      "utterance": "utter_goodbye",
+      "next_nodes": {
+        "restart": "start"
+      },
+      "is_jumpable": true
+    },
+    "fallback": {
+      "id": "fallback",
+      "utterance": "utter_fallback",
+      "next_nodes": {
+        "restart": "start"
+      },
+      "is_jumpable": true
+    },
+    "thong_tin" :{
+
+    },
+    "nganh_hoc": {
+      "id": "nganh_hoc",
+      "type": "selection",
+      "required_slots": ["major"],
+      "utterance": "utter_ask_major",
+      "buttons": [
+        {
+          "title": "Khoa học máy tính",
+          "payload": "/inform_major{\"major\": \"CN8\"}"
+        },
+        {
+          "title": "Công nghệ thông tin",
+          "payload": "/inform_major{\"major\": \"CN1\"}"
+        }
+      ],
+      "next_nodes": {
+        "inform_major": "phuong_thuc"
+      },
+      "is_jumpable": true
+    },
+    "phuong_thuc": {
+      "id": "phuong_thuc",
+      "type": "selection",
+      "required_slots": ["admission_method"],
+      "utterance": "utter_ask_admission_method",
+      "buttons": [
+        {
+          "title": "Điểm thi THPTQG",
+          "payload": "/inform_method{\"admission_method\": \"THPTQG\"}"
+        },
+        {
+          "title": "Đánh giá năng lực",
+          "payload": "/inform_method{\"admission_method\": \"DGNL\"}"
+        },
+        {
+          "title": "IELTS/SAT",
+          "payload": "/inform_method{\"admission_method\": \"IELTS\"}"
+        }
+      ],
+      "next_nodes": {
+        "inform_method": "diem_chuan"
+      },
+      "is_jumpable": true
+    },
+    "diem_chuan": {
+      "id": "diem_chuan",
+      "type": "informational",
+      "dynamic_data": true,
+      "utterance": "utter_provide_score_info",
+      "next_nodes": {
+        "ask_tuition": "hoc_phi",
+        "affirm": "hoc_phi"
+      },
+      "is_jumpable": true
+    },
+    "hoc_phi": {
+      "id": "hoc_phi",
+      "type": "informational",
+      "dynamic_data": true,
+      "utterance": "utter_provide_tuition_info",
+      "next_nodes": {
+        "confirm_suitable": "check_suitability"
+      },
+      "is_jumpable": true
+    },
+    "check_suitability": {
+      "id": "check_suitability",
+      "type": "decision",
+      "logic_gate": "action_check_suitability",
+      "next_nodes": {
+        "true": "ctdt",
+        "false": "nganh_hoc"
+      },
+      "is_jumpable": false
+    },
+    "ctdt": {
+      "id": "ctdt",
+      "type": "informational",
+      "utterance": "utter_provide_curriculum",
+      "next_nodes": {
+        "ask_career": "di_lam",
+        "ask_higher_edu": "hoc_tiep"
+      },
+      "is_jumpable": true
+    },
+    "di_lam": {
+      "id": "di_lam",
+      "utterance": "utter_career_prospects",
+      "next_nodes": {
+        "restart": "start"
+      },
+      "is_jumpable": true
+    },
+    "hoc_tiep": {
+      "id": "hoc_tiep",
+      "utterance": "utter_higher_edu_info",
+      "next_nodes": {
+        "restart": "start"
+      },
+      "is_jumpable": true
+    }
+  }
+}
