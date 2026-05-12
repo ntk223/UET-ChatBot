@@ -1,4 +1,4 @@
-export default function ReplyButtons({ buttons, onReply }) {
+export default function ReplyButtons({ buttons, onReply, disabled }) {
   if (!buttons || buttons.length === 0) {
     return null;
   }
@@ -11,6 +11,7 @@ export default function ReplyButtons({ buttons, onReply }) {
           className="reply-button"
           type="button"
           onClick={() => onReply?.(button)}
+          disabled={disabled}
         >
           {button.title}
         </button>

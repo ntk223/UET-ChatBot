@@ -1,8 +1,18 @@
 import { useState } from "react";
 
-export default function Composer({ onSend, isSending }) {
+export default function Composer({ onSend, onStart, isSending, isEmpty }) {
   const [draft, setDraft] = useState("");
   const canSend = draft.trim().length > 0 && !isSending;
+
+  if (isEmpty) {
+    return (
+      <div className="composer">
+        <button type="button" onClick={onStart} disabled={isSending}>
+          Start
+        </button>
+      </div>
+    );
+  }
 
   const handleSend = () => {
     const trimmed = draft.trim();

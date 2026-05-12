@@ -45,6 +45,12 @@ class SessionStoreService {
     return JSON.parse(payload);
   }
 
+  async clearSession(senderId) {
+    const redis = getRedisClient();
+    const key = this.getSessionKey(senderId);
+    await redis.del(key);
+  }
+
   async initSession(senderId, startNode) {
     const session = this.createDefaultSession(senderId, startNode);
     return this.saveSession(senderId, session);

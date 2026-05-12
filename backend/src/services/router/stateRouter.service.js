@@ -1,10 +1,8 @@
 class StateRouterService {
   resolveNextNode({ flowchart, currentNodeId, intent, payload }) {
-    // console.log(flowchart, currentNodeId, intent, payload);
     const currentNode = flowchart.nodes[currentNodeId] || flowchart.nodes.start;
     const currentTransitions = currentNode.next_nodes || {};
 
-    // console.log(currentNode,"||", currentTransitions);
 
     if (payload && currentTransitions[payload]) {
       return {

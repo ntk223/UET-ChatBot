@@ -5,7 +5,19 @@ import { quickReplies } from "./data/quickReplies.js";
 import { useChat } from "./hooks/useChat.js";
 
 export default function App() {
-  const { messages, isSending, apiStatus, error, sendText, sendPayload } = useChat();
+  const {
+    messages,
+    isSending,
+    apiStatus,
+    error,
+    loadHistory,
+    canLoadHistory,
+    isHistoryLoading,
+    newChat,
+    startChat,
+    sendText,
+    sendPayload,
+  } = useChat();
 
   return (
     <div className="app">
@@ -29,6 +41,11 @@ export default function App() {
           messages={messages}
           onSend={sendText}
           onSendPayload={sendPayload}
+          onLoadHistory={loadHistory}
+          onNewChat={newChat}
+          onStart={startChat}
+          canLoadHistory={canLoadHistory}
+          isHistoryLoading={isHistoryLoading}
           isSending={isSending}
           error={error}
         />

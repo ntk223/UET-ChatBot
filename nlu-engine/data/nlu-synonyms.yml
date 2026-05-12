@@ -1,0 +1,27 @@
+version: "3.1"
+nlu:
+  - synonym: CN8
+    examples: |
+      - khmt
+      - khoa hoc may tinh
+
+  - synonym: CN1
+    examples: |
+      - IT
+      - cntt
+      - cong nghe thong tin
+
+  - synonym: THPTQG
+    examples: |
+      - thptqg
+      - diem thi thpt
+      - thpt
+
+  - synonym: DGNL
+    examples: |
+      - danh gia nang luc
+
+  - synonym: IELTS
+    examples: |
+      - ielts/sat
+      - sat

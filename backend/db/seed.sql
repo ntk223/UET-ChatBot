@@ -1,7 +1,7 @@
 INSERT INTO majors (code, name, program_type, tuition_fee, curriculum_summary)
 VALUES
   ('CN1', 'Công nghệ thông tin', 'Standard', 34.00, '145 tín chỉ, đào tạo 4 năm'),
-  ('CN2', 'An toàn thông tin', 'DMKT', 40.00, '150 tín chỉ, đào tạo 4.5 năm')
+  ('CN8', 'Khoa học máy tính', 'DMKT', 40.00, '150 tín chỉ, đào tạo 4.5 năm')
 ON CONFLICT (code) DO UPDATE
 SET
   name = EXCLUDED.name,
@@ -18,10 +18,10 @@ VALUES
     'Lập trình viên, Kiến trúc sư hệ thống.'
   ),
   (
-    (SELECT id FROM majors WHERE code = 'CN2'),
-    'Chương trình đào tạo chuyên sâu về bảo mật.',
+    (SELECT id FROM majors WHERE code = 'CN8'),
+    'Chương trình đào tạo chuyên sâu về khoa học máy tính.',
     4.5,
-    'Chuyên gia bảo mật, Kỹ sư an ninh mạng.'
+    'Kỹ sư phần mềm, Nhà khoa học dữ liệu.'
   )
 ON CONFLICT (major_id) DO UPDATE
 SET
@@ -54,7 +54,7 @@ VALUES
     'A00, A01'
   ),
   (
-    (SELECT id FROM majors WHERE code = 'CN2'),
+    (SELECT id FROM majors WHERE code = 'CN8'),
     (SELECT id FROM admission_methods WHERE method_name = 'THPTQG'),
     2025,
     25.00,
@@ -79,7 +79,7 @@ VALUES
     TRUE
   ),
   (
-    (SELECT id FROM majors WHERE code = 'CN2'),
+    (SELECT id FROM majors WHERE code = 'CN8'),
     (SELECT id FROM admission_methods WHERE method_name = 'IELTS_Plus'),
     2025,
     50,

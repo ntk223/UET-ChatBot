@@ -14,7 +14,6 @@ async function findMajorByCode(code) {
     `,
     [code]
   );
-  // console.log(result)
   return result.rows[0] || null;
 }
 

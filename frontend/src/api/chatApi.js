@@ -2,8 +2,14 @@ import { API_BASE_URL } from "../config.js";
 
 const WEBHOOK_PATH = "/webhook";
 const HEALTH_PATH = "/health";
+const HISTORY_PATH = "/history";
 
-export async function sendWebhookMessage({ senderId, messageText, payloadValue }) {
+export async function sendWebhookMessage({
+  senderId,
+  messageText,
+  payloadValue,
+  newSession = false,
+}) {
   const response = await fetch(`${API_BASE_URL}${WEBHOOK_PATH}`, {
     method: "POST",
     headers: {
@@ -13,6 +19,7 @@ export async function sendWebhookMessage({ senderId, messageText, payloadValue }
       sender_id: senderId,
       message_text: messageText,
       payload_value: payloadValue,
+      new_session: newSession,
     }),
   });
 
@@ -34,4 +41,18 @@ export async function checkHealth() {
   }
 
   return response.json().catch(() => ({}));
+}
+
+export async function fetchChatHistory({ senderId }) {
+  const query = new URLSearchParams({ sender_id: senderId }).toString();
+  const response = await fetch(`${API_BASE_URL}${HISTORY_PATH}?${query}`);
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const message = data?.message || "Request failed";
+    throw new Error(message);
+  }
+
+  return data;
 }

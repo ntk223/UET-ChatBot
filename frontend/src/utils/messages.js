@@ -15,12 +15,12 @@ export function normalizeButtons(buttons) {
     }));
 }
 
-export function createMessage({ from, text, buttons }) {
+export function createMessage({ from, text, buttons, timestamp, id }) {
   return {
-    id: createId(),
+    id: id || createId(),
     from,
     text,
     buttons: normalizeButtons(buttons),
-    timestamp: new Date().toISOString(),
+    timestamp: timestamp || new Date().toISOString(),
   };
 }

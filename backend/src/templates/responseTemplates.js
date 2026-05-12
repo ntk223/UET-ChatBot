@@ -10,7 +10,6 @@ function normalizeButtons(buttons) {
 }
 
 function scoreResultTemplate({ scoreInfo, fallbackText, buttons }) {
-  console.log(scoreInfo.major_name);
   
   if (!scoreInfo || !scoreInfo.major_name) {
     return {
@@ -57,6 +56,7 @@ function defaultTemplate({ text, buttons }) {
     buttons: normalizeButtons(buttons),
   };
 }
+
 
 module.exports = {
   scoreResultTemplate,
