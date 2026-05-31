@@ -1,0 +1,7 @@
+# version: "3.1"
+# nlu:
+#   - intent: ask_higher_edu
+#     examples: |
+#       - co the hoc tiep khong
+#       - em muon hoc cao hoc
+#       - co huong hoc tiep nao

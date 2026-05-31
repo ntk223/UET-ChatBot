@@ -1,0 +1,21 @@
+version: "3.1"
+nlu:
+  - intent: xet_hocba
+    examples: |
+      - xét học bạ
+      - xet hoc ba
+      - kiểm tra điểm học bạ
+      - check hoc ba
+      - xét tuyển học bạ thpt
+      - xet tuyen hoc ba
+      - hoc ba thpt
+      - cho em đăng ký xét học bạ
+      - đăng ký xét học bạ online
+      - hướng dẫn xét tuyển học bạ
+      - em muốn xét học bạ vào uet
+      - xét tuyển bằng học bạ lớp 12
+      - nộp học bạ
+      - xét tuyển sớm bằng học bạ
+      - các bước xét tuyển học bạ
+      - nộp hồ sơ học bạ như thế nào
+      - hướng dẫn nộp học bạ online

@@ -1,0 +1,26 @@
+[
+  {
+    "text": "asdfgh",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "affirm",
+      "confidence": 0.00022814168187323958
+    }
+  },
+  {
+    "text": "???",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "restart",
+      "confidence": 0.00017734724679030478
+    }
+  },
+  {
+    "text": "abc xyz",
+    "intent": "nlu_fallback",
+    "intent_prediction": {
+      "name": "restart",
+      "confidence": 0.00013898835459258407
+    }
+  }
+]

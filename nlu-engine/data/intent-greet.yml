@@ -1,0 +1,8 @@
+version: "3.1"
+nlu:
+  - intent: greet
+    examples: |
+      - xin chao
+      - chao ban
+      - hello
+      - em can tu van tuyen sinh

@@ -1,0 +1,23 @@
+version: "3.1"
+nlu:
+  - intent: xet_ket_hop
+    examples: |
+      - xét tuyển kết hợp
+      - xet tuyen ket hop
+      - xét tuyển ielts
+      - xet ielts
+      - xét ielts cộng học bạ
+      - chứng chỉ tiếng anh và học bạ
+      - xet tuyen ielts plus học bạ
+      - ielts plus
+      - xet tuyen chung chi tieng anh
+      - em muốn xét tuyển kết hợp ielts
+      - quy chế xét tuyển chứng chỉ quốc tế
+      - xét tuyển ielts và học bạ thpt
+      - xét tuyển kết hợp sat
+      - đăng ký xét tuyển kết hợp
+      - nộp hồ sơ xét tuyển ielts
+      - hướng dẫn xét tuyển kết hợp chứng chỉ ngoại ngữ
+      - xét kết hợp chứng chỉ quốc tế với học bạ
+      - em có ielts thì xét tuyển như thế nào
+      - xét tuyển kết hợp ielts và học bạ lớp 12

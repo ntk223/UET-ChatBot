@@ -7,33 +7,126 @@ stories:
     - intent: greet
     - action: utter_greet_and_start
     - intent: ask_admission
-    - action: utter_ask_major
-    - intent: inform_major
-    - action: utter_ask_admission_method
-    - intent: inform_method
-    - action: utter_provide_score_info
+    - action: admission_form
+    - active_loop: admission_form
+    - active_loop: null
+    - action: action_fetch_score
 
-- story: Hoi tiep hoc phi
+- story: Hoi hoc phi sau diem chuan
   steps:
-    - intent: inform_method
-    - action: utter_provide_score_info
+    - action: action_fetch_score
     - intent: ask_tuition
-    - action: utter_provide_tuition_info
+    - action: tuition_form
+    - active_loop: tuition_form
+    - active_loop: null
+    - action: action_fetch_tuition
 
-- story: Ket thuc hoi thoai
+- story: Hoi hoc phi truc tiep
   steps:
-    - intent: goodbye
-    - action: utter_goodbye
+    - intent: ask_tuition
+    - action: tuition_form
+    - active_loop: tuition_form
+    - active_loop: null
+    - action: action_fetch_tuition
 
 - story: Luong tiep tuc sau hoc phi
   steps:
-    - intent: ask_tuition
-    - action: utter_provide_tuition_info
+    - action: action_fetch_tuition
     - intent: confirm_suitable
-    - action: utter_default
+    - action: action_check_suitability
     - intent: ask_career
     - action: utter_career_prospects
     - intent: ask_higher_edu
     - action: utter_higher_edu_info
+
+- story: Tim hieu nganh hoc va muon biet chi tiet hon
+  steps:
+    - intent: inform_major
+    - action: action_explain_major_and_cta
+    - intent: ask_detailed_major
+    - action: action_provide_detailed_major_info
+
+- story: Tim hieu nganh hoc truc tiep chi tiet
+  steps:
+    - intent: ask_detailed_major
+    - action: action_provide_detailed_major_info
+
+- story: Tim hieu nganh hoc va chon xet hoc ba - Dong y DK thong tin
+  steps:
+    - intent: inform_major
+    - action: action_explain_major_and_cta
+    - intent: xet_hocba
+    - action: hocba_admission_form
+    - active_loop: hocba_admission_form
+    - active_loop: null
+    - action: action_eval_hocba_admission
     - intent: affirm
-    - action: utter_default
+    - action: personal_info_form
+    - active_loop: personal_info_form
+    - active_loop: null
+    - action: action_save_candidate_info
+
+- story: Tim hieu nganh hoc va chon xet hoc ba - Tu choi DK thong tin
+  steps:
+    - intent: inform_major
+    - action: action_explain_major_and_cta
+    - intent: xet_hocba
+    - action: hocba_admission_form
+    - active_loop: hocba_admission_form
+    - active_loop: null
+    - action: action_eval_hocba_admission
+    - intent: deny
+    - action: action_cancel_hocba_admission
+
+- story: Tim hieu nganh hoc va chon xet ket hop IELTS - Dong y DK thong tin
+  steps:
+    - intent: inform_major
+    - action: action_explain_major_and_cta
+    - intent: xet_ket_hop
+    - action: combined_admission_form
+    - active_loop: combined_admission_form
+    - active_loop: null
+    - action: action_eval_combined_admission
+    - intent: affirm
+    - action: personal_info_form
+    - active_loop: personal_info_form
+    - active_loop: null
+    - action: action_save_candidate_info
+
+- story: Tim hieu nganh hoc va chon xet ket hop IELTS - Tu choi DK thong tin
+  steps:
+    - intent: inform_major
+    - action: action_explain_major_and_cta
+    - intent: xet_ket_hop
+    - action: combined_admission_form
+    - active_loop: combined_admission_form
+    - active_loop: null
+    - action: action_eval_combined_admission
+    - intent: deny
+    - action: action_cancel_hocba_admission
+
+- story: Chon luong xet tuyen hoc ba truc tiep tu dau - Dong y DK thong tin
+  steps:
+    - intent: xet_hocba
+    - action: hocba_admission_form
+    - active_loop: hocba_admission_form
+    - active_loop: null
+    - action: action_eval_hocba_admission
+    - intent: affirm
+    - action: personal_info_form
+    - active_loop: personal_info_form
+    - active_loop: null
+    - action: action_save_candidate_info
+
+- story: Chon luong xet tuyen ket hop truc tiep tu dau - Dong y DK thong tin
+  steps:
+    - intent: xet_ket_hop
+    - action: combined_admission_form
+    - active_loop: combined_admission_form
+    - active_loop: null
+    - action: action_eval_combined_admission
+    - intent: affirm
+    - action: personal_info_form
+    - active_loop: personal_info_form
+    - active_loop: null
+    - action: action_save_candidate_info

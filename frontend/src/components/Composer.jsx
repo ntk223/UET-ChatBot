@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Rocket, SendHorizontal } from "lucide-react";
 
 export default function Composer({ onSend, onStart, isSending, isEmpty }) {
   const [draft, setDraft] = useState("");
@@ -7,8 +8,15 @@ export default function Composer({ onSend, onStart, isSending, isEmpty }) {
   if (isEmpty) {
     return (
       <div className="composer">
-        <button type="button" onClick={onStart} disabled={isSending}>
-          Start
+        <button
+          className="flex-align"
+          type="button"
+          onClick={onStart}
+          disabled={isSending}
+          style={{ width: "auto", margin: "0 auto", padding: "12px 24px" }}
+        >
+          <Rocket size={16} />
+          <span>Bắt đầu tư vấn</span>
         </button>
       </div>
     );
@@ -29,7 +37,7 @@ export default function Composer({ onSend, onStart, isSending, isEmpty }) {
     <div className="composer">
       <input
         type="text"
-        placeholder="Type a message"
+        placeholder="Nhập câu hỏi hoặc chọn từ các nút gợi ý..."
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
@@ -39,8 +47,14 @@ export default function Composer({ onSend, onStart, isSending, isEmpty }) {
         }}
         disabled={isSending}
       />
-      <button type="button" onClick={handleSend} disabled={!canSend}>
-        Send
+      <button
+        className="flex-align"
+        type="button"
+        onClick={handleSend}
+        disabled={!canSend}
+      >
+        <SendHorizontal size={16} />
+        <span>Gửi</span>
       </button>
     </div>
   );

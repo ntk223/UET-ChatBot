@@ -1,0 +1,12 @@
+#định nghĩa intent hỏi về xét tuyển đại học
+version: "3.1"
+nlu:
+  - intent: ask_admission
+    examples: |
+      - toi muon biet ve xet tuyen
+      - cho em hoi ve xet tuyen
+      - xet tuyen nhu the nao
+      - dieu kien xet tuyen la gi
+      - thong tin xet tuyen nganh [khoa hoc may tinh](major)
+      - dieu kien xet tuyen nganh [khmt](major)
+      - cho minh xet tuyen [khmt](major) nhu the nao

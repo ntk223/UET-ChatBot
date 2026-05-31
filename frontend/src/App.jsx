@@ -22,10 +22,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="hero">
-        <p className="eyebrow">UET Chatbot Demo</p>
-        <h1>Admissions assistant prototype</h1>
+        <p className="eyebrow">UET Admissions Prototype</p>
+        <h1>Cổng Hỗ Trợ Tuyển Sinh UET</h1>
         <p className="subtitle">
-          A simple React UI connected to the backend webhook for live replies.
+          Hệ thống chatbot tư vấn tuyển sinh tự động (Flowchart-Grounded AI) liên kết trực tiếp với dữ liệu điểm chuẩn, học phí và các phương thức xét tuyển mới nhất.
         </p>
       </header>
 

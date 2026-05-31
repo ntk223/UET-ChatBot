@@ -1,0 +1,8 @@
+version: "3.1"
+stories:
+- story: test tu van diem chuan (/home/ntkien223/uet-chatbot-platform/nlu-engine/tests/test_stories.yml)
+  steps:
+  - intent: greet
+  - action: utter_greet_and_start
+  - intent: ask_admission  # predicted: ask_tuition: nganh [khmt]{"entity": "major", "value": "CN8"} lay bao nhieu diem
+  - action: utter_ask_major  # predicted: admission_form

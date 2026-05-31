@@ -1,8 +1,33 @@
 import { API_BASE_URL } from "../config.js";
 
-const WEBHOOK_PATH = "/webhook";
-const HEALTH_PATH = "/health";
-const HISTORY_PATH = "/history";
+const WEBHOOK_PATH = "/webhooks/rest/webhook";
+const HEALTH_PATH = "/";
+const TRACKER_PATH = "/conversations";
+
+function toWebhookResponse(rasaMessages) {
+  const messages = Array.isArray(rasaMessages) ? rasaMessages : [];
+  const textParts = messages.map((message) => message?.text).filter(Boolean);
+  const buttonsMessage = messages.find(
+    (message) => Array.isArray(message?.buttons) && message.buttons.length > 0
+  );
+
+  return {
+    bot_says: textParts.join("\n") || "",
+    buttons: buttonsMessage?.buttons || [],
+  };
+}
+
+async function restartConversation(senderId) {
+  await fetch(`${API_BASE_URL}${TRACKER_PATH}/${encodeURIComponent(senderId)}/tracker/events`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      event: "restart",
+    }),
+  });
+}
 
 export async function sendWebhookMessage({
   senderId,
@@ -10,27 +35,34 @@ export async function sendWebhookMessage({
   payloadValue,
   newSession = false,
 }) {
+  if (!senderId) {
+    throw new Error("sender is required");
+  }
+
+  if (newSession) {
+    await restartConversation(senderId);
+  }
+
+  const outgoingMessage = payloadValue || messageText || "";
   const response = await fetch(`${API_BASE_URL}${WEBHOOK_PATH}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      sender_id: senderId,
-      message_text: messageText,
-      payload_value: payloadValue,
-      new_session: newSession,
+      sender: senderId,
+      message: outgoingMessage,
     }),
   });
 
-  const data = await response.json().catch(() => ({}));
+  const data = await response.json().catch(() => ([]));
 
   if (!response.ok) {
     const message = data?.message || "Request failed";
     throw new Error(message);
   }
 
-  return data;
+  return toWebhookResponse(data);
 }
 
 export async function checkHealth() {
@@ -44,8 +76,13 @@ export async function checkHealth() {
 }
 
 export async function fetchChatHistory({ senderId }) {
-  const query = new URLSearchParams({ sender_id: senderId }).toString();
-  const response = await fetch(`${API_BASE_URL}${HISTORY_PATH}?${query}`);
+  if (!senderId) {
+    throw new Error("sender is required");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}${TRACKER_PATH}/${encodeURIComponent(senderId)}/tracker`
+  );
 
   const data = await response.json().catch(() => ({}));
 
@@ -54,5 +91,26 @@ export async function fetchChatHistory({ senderId }) {
     throw new Error(message);
   }
 
-  return data;
+  const events = Array.isArray(data?.events) ? data.events : [];
+  const historyEntries = events
+    .filter((event) => event?.event === "user" || event?.event === "bot")
+    .map((event) => {
+      if (event.event === "user") {
+        return {
+          sender: "USER",
+          message_text: event.text || "",
+          intent: event.parse_data?.intent?.name || null,
+          timestamp: event.timestamp || null,
+        };
+      }
+
+      return {
+        sender: "BOT",
+        message_text: event.text || "",
+        buttons: event.data?.buttons || [],
+        timestamp: event.timestamp || null,
+      };
+    });
+
+  return { sender_id: senderId, history: historyEntries };
 }

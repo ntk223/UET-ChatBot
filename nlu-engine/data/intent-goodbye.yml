@@ -1,0 +1,8 @@
+version: "3.1"
+nlu:
+  - intent: goodbye
+    examples: |
+      - tam biet
+      - bye
+      - cam on ban
+      - hen gap lai

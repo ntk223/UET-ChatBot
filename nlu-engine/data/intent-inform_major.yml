@@ -1,0 +1,23 @@
+#định nghĩa intent giới thiệu chung về các ngành học tại uet
+version: "3.1"
+nlu:
+  - intent: inform_major
+    examples: |
+      - em chon nganh [Khoa hoc may tinh](major)
+      - minh quan tam [khmt](major)
+      - cho toi nganh [cong nghe thong tin](major)
+      - [CNTT](major)
+      - ngành [khoa học máy tính](major)
+      - mình chọn [cn12](major)
+      - em muốn tìm hiểu ngành [trí tuệ nhân tạo](major)
+      - tư vấn ngành [khoa học dữ liệu](major) giúp em
+      - cho em thông tin ngành [kỹ thuật máy tính](major)
+      - em muốn học [cn1](major)
+      - [công nghệ thông tin](major) ạ
+      - ngành [cn20](major)
+      - mình muốn hỏi về ngành [cn11](major)
+      - tìm hiểu ngành [tự động hóa](major)
+      - em chọn [cn8](major)
+      - tôi quan tâm ngành [công nghệ hàng không vũ trụ](major)
+      - [cn12](major) ạ
+      - chọn ngành [cn2](major)

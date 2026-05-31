@@ -1,0 +1,9 @@
+#định nghĩa intent hỏi về thông tin chung của uet
+version: "3.1"
+nlu:
+  - intent: uet_info
+    examples: |
+      - tim hieu ve uet
+      - thong tin uet
+      - gioi thieu ve uet
+      - uet la truong gi

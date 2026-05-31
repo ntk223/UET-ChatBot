@@ -1,21 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Space+Grotesk:wght@400;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap");
 
 :root {
   color-scheme: light;
-  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-family: "Nunito", system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #102a43;
-  background-color: #f8f6f2;
-  --ink: #102a43;
-  --muted: #486581;
-  --accent: #0f766e;
-  --accent-strong: #0b5f5a;
-  --highlight: #f59e0b;
+  color: #1a365d;
+  background-color: #f0f4f8;
+  --ink: #1a365d;
+  --muted: #4a5568;
+  --accent: #2b6cb0;
+  --accent-strong: #1a365d;
+  --highlight: #dd6b20;
   --surface: #ffffff;
-  --surface-soft: #f0f4f8;
-  --stroke: #d9e2ec;
-  --shadow: 0 20px 50px rgba(17, 24, 39, 0.12);
+  --surface-soft: #edf2f7;
+  --stroke: #e2e8f0;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -55,9 +55,11 @@ body {
 }
 
 .hero h1 {
-  font-family: "Fraunces", serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
   font-size: clamp(28px, 4vw, 44px);
   margin: 0 0 12px;
+  color: var(--accent-strong);
 }
 
 .subtitle {
@@ -81,8 +83,11 @@ body {
 }
 
 .panel-card h2 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
   margin: 0 0 8px;
   font-size: 20px;
+  color: var(--accent-strong);
 }
 
 .muted {
@@ -170,7 +175,8 @@ body {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  min-height: 480px;
+  height: 680px;
+  max-height: 80vh;
 }
 
 .chat-header {
@@ -189,8 +195,11 @@ body {
 }
 
 .chat-header h3 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
   margin: 0 0 4px;
   font-size: 18px;
+  color: var(--accent-strong);
 }
 
 .badge {
@@ -318,6 +327,57 @@ body {
 .chip:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.flex-align {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-blue {
+  color: var(--accent);
+}
+
+.icon-orange {
+  color: var(--highlight);
+}
+
+.dot-online {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse-online 2s infinite;
+}
+
+@keyframes pulse-online {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.spin {
+  animation: spin-loader 1s linear infinite;
+}
+
+@keyframes spin-loader {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeIn {
