@@ -1,7 +1,0 @@
-version: "3.1"
-nlu:
-  - intent: ask_career
-    examples: |
-      - co hoi viec lam ra sao
-      - hoc xong de xin viec khong
-      - ra truong lam gi

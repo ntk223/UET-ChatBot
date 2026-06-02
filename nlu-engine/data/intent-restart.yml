@@ -1,7 +1,0 @@
-version: "3.1"
-nlu:
-  - intent: restart
-    examples: |
-      - bat dau lai
-      - minh muon tu van lai tu dau
-      - quay lai tu dau

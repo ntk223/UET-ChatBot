@@ -1,132 +1,50 @@
 version: "3.1"
 
 stories:
+  - story: Luồng đăng ký HSA thành công
+    steps:
+      - intent: dang_ky_nguyen_vong
+      - action: utter_ask_method
+      - intent: chon_ptxt_hsa
+      - action: hsa_form
+      - active_loop: hsa_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_hsa_form
 
-- story: Tu van diem chuan co ban
-  steps:
-    - intent: greet
-    - action: utter_greet_and_start
-    - intent: ask_admission
-    - action: admission_form
-    - active_loop: admission_form
-    - active_loop: null
-    - action: action_fetch_score
+  - story: Luồng đăng ký THPTQG thành công
+    steps:
+      - intent: dang_ky_nguyen_vong
+      - action: utter_ask_method
+      - intent: chon_ptxt_thptqg
+      - action: thptqg_form
+      - active_loop: thptqg_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_thptqg_form
 
-- story: Hoi hoc phi sau diem chuan
-  steps:
-    - action: action_fetch_score
-    - intent: ask_tuition
-    - action: tuition_form
-    - active_loop: tuition_form
-    - active_loop: null
-    - action: action_fetch_tuition
+  - story: Luồng đăng ký IELTS thành công
+    steps:
+      - intent: dang_ky_nguyen_vong
+      - action: utter_ask_method
+      - intent: chon_ptxt_ielts
+      - action: ielts_form
+      - active_loop: ielts_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_ielts_form
 
-- story: Hoi hoc phi truc tiep
-  steps:
-    - intent: ask_tuition
-    - action: tuition_form
-    - active_loop: tuition_form
-    - active_loop: null
-    - action: action_fetch_tuition
-
-- story: Luong tiep tuc sau hoc phi
-  steps:
-    - action: action_fetch_tuition
-    - intent: confirm_suitable
-    - action: action_check_suitability
-    - intent: ask_career
-    - action: utter_career_prospects
-    - intent: ask_higher_edu
-    - action: utter_higher_edu_info
-
-- story: Tim hieu nganh hoc va muon biet chi tiet hon
-  steps:
-    - intent: inform_major
-    - action: action_explain_major_and_cta
-    - intent: ask_detailed_major
-    - action: action_provide_detailed_major_info
-
-- story: Tim hieu nganh hoc truc tiep chi tiet
-  steps:
-    - intent: ask_detailed_major
-    - action: action_provide_detailed_major_info
-
-- story: Tim hieu nganh hoc va chon xet hoc ba - Dong y DK thong tin
-  steps:
-    - intent: inform_major
-    - action: action_explain_major_and_cta
-    - intent: xet_hocba
-    - action: hocba_admission_form
-    - active_loop: hocba_admission_form
-    - active_loop: null
-    - action: action_eval_hocba_admission
-    - intent: affirm
-    - action: personal_info_form
-    - active_loop: personal_info_form
-    - active_loop: null
-    - action: action_save_candidate_info
-
-- story: Tim hieu nganh hoc va chon xet hoc ba - Tu choi DK thong tin
-  steps:
-    - intent: inform_major
-    - action: action_explain_major_and_cta
-    - intent: xet_hocba
-    - action: hocba_admission_form
-    - active_loop: hocba_admission_form
-    - active_loop: null
-    - action: action_eval_hocba_admission
-    - intent: deny
-    - action: action_cancel_hocba_admission
-
-- story: Tim hieu nganh hoc va chon xet ket hop IELTS - Dong y DK thong tin
-  steps:
-    - intent: inform_major
-    - action: action_explain_major_and_cta
-    - intent: xet_ket_hop
-    - action: combined_admission_form
-    - active_loop: combined_admission_form
-    - active_loop: null
-    - action: action_eval_combined_admission
-    - intent: affirm
-    - action: personal_info_form
-    - active_loop: personal_info_form
-    - active_loop: null
-    - action: action_save_candidate_info
-
-- story: Tim hieu nganh hoc va chon xet ket hop IELTS - Tu choi DK thong tin
-  steps:
-    - intent: inform_major
-    - action: action_explain_major_and_cta
-    - intent: xet_ket_hop
-    - action: combined_admission_form
-    - active_loop: combined_admission_form
-    - active_loop: null
-    - action: action_eval_combined_admission
-    - intent: deny
-    - action: action_cancel_hocba_admission
-
-- story: Chon luong xet tuyen hoc ba truc tiep tu dau - Dong y DK thong tin
-  steps:
-    - intent: xet_hocba
-    - action: hocba_admission_form
-    - active_loop: hocba_admission_form
-    - active_loop: null
-    - action: action_eval_hocba_admission
-    - intent: affirm
-    - action: personal_info_form
-    - active_loop: personal_info_form
-    - active_loop: null
-    - action: action_save_candidate_info
-
-- story: Chon luong xet tuyen ket hop truc tiep tu dau - Dong y DK thong tin
-  steps:
-    - intent: xet_ket_hop
-    - action: combined_admission_form
-    - active_loop: combined_admission_form
-    - active_loop: null
-    - action: action_eval_combined_admission
-    - intent: affirm
-    - action: personal_info_form
-    - active_loop: personal_info_form
-    - active_loop: null
-    - action: action_save_candidate_info
+  - story: Luồng đăng ký tuyển thẳng thành công
+    steps:
+      - intent: dang_ky_nguyen_vong
+      - action: utter_ask_method
+      - intent: chon_ptxt_tuyen_thang
+      - action: direct_form
+      - active_loop: direct_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_direct_form

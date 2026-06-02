@@ -1,136 +1,91 @@
 version: "3.1"
 
 rules:
+  - rule: Chào hỏi ban đầu
+    steps:
+      - intent: greet
+      - action: utter_greet
 
-- rule: Chao hoi ban dau
-  steps:
-    - intent: greet
-    - action: utter_greet_and_start
+  - rule: Bắt đầu đăng ký nguyện vọng (hỏi phương thức)
+    steps:
+      - intent: dang_ky_nguyen_vong
+      - action: utter_ask_method
 
-- rule: Nguoi dung ket thuc hoi thoai
-  steps:
-    - intent: goodbye
-    - action: utter_goodbye
+  - rule: Hỏi học phí
+    steps:
+      - intent: hoi_hoc_phi
+      - action: utter_tuition_info
 
-- rule: Intent fallback
-  steps:
-    - intent: nlu_fallback
-    - action: utter_fallback
+  - rule: Kích hoạt form HSA
+    steps:
+      - intent: chon_ptxt_hsa
+      - action: hsa_form
+      - active_loop: hsa_form
 
-- rule: Nguoi dung bat dau lai
-  steps:
-    - intent: restart
-    - action: action_restart
-    - action: utter_greet_and_start
+  - rule: Hoàn tất form HSA
+    condition:
+      - active_loop: hsa_form
+    steps:
+      - action: hsa_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_hsa_form
 
-- rule: Hoi thong tin ve UET
-  steps:
-    - intent: uet_info
-    - action: utter_uet_info
+  - rule: Kích hoạt form IELTS
+    steps:
+      - intent: chon_ptxt_ielts
+      - action: ielts_form
+      - active_loop: ielts_form
 
-- rule: Bat dau admission form
-  steps:
-    - intent: ask_admission
-    - action: admission_form
-    - active_loop: admission_form
+  - rule: Hoàn tất form IELTS
+    condition:
+      - active_loop: ielts_form
+    steps:
+      - action: ielts_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_ielts_form
 
-- rule: Hoan tat admission form
-  condition:
-    - active_loop: admission_form
-  steps:
-    - action: admission_form
-    - active_loop: null
-    - action: action_fetch_score
+  - rule: Kích hoạt form Tuyển thẳng
+    steps:
+      - intent: chon_ptxt_tuyen_thang
+      - action: direct_form
+      - active_loop: direct_form
 
-- rule: Bat dau tuition form
-  steps:
-    - intent: ask_tuition
-    - action: tuition_form
-    - active_loop: tuition_form
+  - rule: Hoàn tất form Tuyển thẳng
+    condition:
+      - active_loop: direct_form
+    steps:
+      - action: direct_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_direct_form
 
-- rule: Hoan tat tuition form
-  condition:
-    - active_loop: tuition_form
-  steps:
-    - action: tuition_form
-    - active_loop: null
-    - action: action_fetch_tuition
+  - rule: Kích hoạt form THPTQG
+    steps:
+      - intent: chon_ptxt_thptqg
+      - action: thptqg_form
+      - active_loop: thptqg_form
 
-- rule: Kiem tra phu hop
-  steps:
-    - intent: confirm_suitable
-    - action: action_check_suitability
+  - rule: Hoàn tất form THPTQG
+    condition:
+      - active_loop: thptqg_form
+    steps:
+      - action: thptqg_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_submit_thptqg_form
 
-- rule: Hoan tat hocba admission form
-  condition:
-    - active_loop: hocba_admission_form
-  steps:
-    - action: hocba_admission_form
-    - active_loop: null
-    - action: action_eval_hocba_admission
+  - rule: Hỏi thông tin ngành học
+    steps:
+      - intent: hoi_thong_tin_nganh
+      - action: action_query_major_info
 
-- rule: Hoan tat combined admission form
-  condition:
-    - active_loop: combined_admission_form
-  steps:
-    - action: combined_admission_form
-    - active_loop: null
-    - action: action_eval_combined_admission
-
-- rule: Hoan tat personal info form
-  condition:
-    - active_loop: personal_info_form
-  steps:
-    - action: personal_info_form
-    - active_loop: null
-    - action: action_save_candidate_info
-
-- rule: Tra cuu quy doi ielts
-  steps:
-    - intent: hoi_quy_doi_ielts
-    - action: utter_hoi_quy_doi_ielts
-
-- rule: Tra cuu cong diem thuong
-  steps:
-    - intent: hoi_cong_diem_thuong
-    - action: utter_hoi_cong_diem_thuong
-
-- rule: Tra cuu thu tuc nop hs
-  steps:
-    - intent: hoi_thu_tuc_nop_hs
-    - action: utter_hoi_thu_tuc_nop_hs
-
-- rule: Tra cuu chinh sach hsa
-  steps:
-    - intent: hoi_chinh_sach_hsa
-    - action: utter_hoi_chinh_sach_hsa
-
-- rule: Tra cuu dieu kien phu
-  steps:
-    - intent: hoi_dieu_kien_phu
-    - action: utter_hoi_dieu_kien_phu
-
-- rule: Tra cuu diem chuan nganh
-  steps:
-    - intent: hoi_diem_chuan_nganh
-    - action: utter_hoi_diem_chuan_nganh
-
-- rule: Tra cuu chi tieu nganh
-  steps:
-    - intent: hoi_chi_tieu_nganh
-    - action: utter_hoi_chi_tieu_nganh
-
-- rule: Tra cuu tu van nganh
-  steps:
-    - intent: hoi_tu_van_nganh
-    - action: utter_hoi_tu_van_nganh
-
-- rule: Tra cuu co hoi viec lam nganh
-  steps:
-    - intent: hoi_co_hoi_viec_lam_nganh
-    - action: utter_hoi_co_hoi_viec_lam_nganh
-
-- rule: Tra cuu thong tin khac ve nganh
-  steps:
-    - intent: hoi_thong_tin_khac_ve_nganh
-    - action: utter_hoi_thong_tin_khac_ve_nganh
+  - rule: Phản hồi khi không hiểu (Fallback)
+    steps:
+      - intent: nlu_fallback
+      - action: utter_default
