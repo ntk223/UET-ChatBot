@@ -2,7 +2,7 @@ import json
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from rasa_sdk.events import SlotSet
+from rasa_sdk.events import SlotSet, ActiveLoop
 from .db_helper import get_db_connection, find_major_code
 
 def reset_all_flowchart_slots() -> List[Dict[Text, Any]]:
@@ -17,7 +17,10 @@ def reset_all_flowchart_slots() -> List[Dict[Text, Any]]:
         SlotSet("award_name", None),
         SlotSet("thptqg_block", None),
         SlotSet("thptqg_score", None),
-        SlotSet("evidence_url", None)
+        SlotSet("evidence_url", None),
+        SlotSet("confirm_registration", None),
+        # Giữ lại last_queried_major để user vẫn hỏi thêm sau khi nộp hồ sơ
+        # SlotSet("last_queried_major", None),  # uncomment nếu muốn reset hẳn
     ]
 
 
@@ -91,7 +94,7 @@ class ActionSubmitHsaForm(Action):
         return "action_submit_hsa_form"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        slots = ["fullname", "phone_number", "chosen_major", "hsa_id", "hsa_score"]
+        slots = ["fullname", "phone_number", "chosen_major", "hsa_id", "hsa_score", "evidence_url"]
         data = {s: tracker.get_slot(s) for s in slots}
         
         try:
@@ -116,9 +119,9 @@ class ActionSubmitHsaForm(Action):
                 
             # Ghi vào bảng phụ admission_hsa
             cursor.execute(f"""
-                INSERT INTO admission_hsa (candidate_id, hsa_id, hsa_score)
-                VALUES ({placeholder}, {placeholder}, {placeholder})
-            """, (candidate_id, data["hsa_id"], int(data["hsa_score"] or 0)))
+                INSERT INTO admission_hsa (candidate_id, hsa_id, hsa_score, evidence_url)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """, (candidate_id, data["hsa_id"], int(data["hsa_score"] or 0), data["evidence_url"]))
             
             conn.commit()
             cursor.close()
@@ -129,7 +132,8 @@ class ActionSubmitHsaForm(Action):
                 "phone_number": data["phone_number"],
                 "chosen_major": data["chosen_major"],
                 "hsa_id": data["hsa_id"],
-                "hsa_score": data["hsa_score"]
+                "hsa_score": data["hsa_score"],
+                "evidence_url": data["evidence_url"]
             }
             summary_json = json.dumps(summary, ensure_ascii=False, indent=2)
             
@@ -154,7 +158,7 @@ class ActionSubmitIeltsForm(Action):
         return "action_submit_ielts_form"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        slots = ["fullname", "phone_number", "chosen_major", "ielts_score", "math_score"]
+        slots = ["fullname", "phone_number", "chosen_major", "ielts_score", "math_score", "evidence_url"]
         data = {s: tracker.get_slot(s) for s in slots}
         
         try:
@@ -179,9 +183,9 @@ class ActionSubmitIeltsForm(Action):
                 
             # Ghi vào bảng phụ admission_ielts
             cursor.execute(f"""
-                INSERT INTO admission_ielts (candidate_id, ielts_score, math_score)
-                VALUES ({placeholder}, {placeholder}, {placeholder})
-            """, (candidate_id, float(data["ielts_score"] or 0), float(data["math_score"] or 0)))
+                INSERT INTO admission_ielts (candidate_id, ielts_score, math_score, evidence_url)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """, (candidate_id, float(data["ielts_score"] or 0), float(data["math_score"] or 0), data["evidence_url"]))
             
             conn.commit()
             cursor.close()
@@ -192,7 +196,8 @@ class ActionSubmitIeltsForm(Action):
                 "phone_number": data["phone_number"],
                 "chosen_major": data["chosen_major"],
                 "ielts_score": data["ielts_score"],
-                "math_score": data["math_score"]
+                "math_score": data["math_score"],
+                "evidence_url": data["evidence_url"]
             }
             summary_json = json.dumps(summary, ensure_ascii=False, indent=2)
             
@@ -217,7 +222,7 @@ class ActionSubmitDirectForm(Action):
         return "action_submit_direct_form"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        slots = ["fullname", "phone_number", "chosen_major", "award_name"]
+        slots = ["fullname", "phone_number", "chosen_major", "award_name", "evidence_url"]
         data = {s: tracker.get_slot(s) for s in slots}
         
         try:
@@ -242,9 +247,9 @@ class ActionSubmitDirectForm(Action):
                 
             # Ghi vào bảng phụ admission_direct
             cursor.execute(f"""
-                INSERT INTO admission_direct (candidate_id, award_name)
-                VALUES ({placeholder}, {placeholder})
-            """, (candidate_id, data["award_name"]))
+                INSERT INTO admission_direct (candidate_id, award_name, evidence_url)
+                VALUES ({placeholder}, {placeholder}, {placeholder})
+            """, (candidate_id, data["award_name"], data["evidence_url"]))
             
             conn.commit()
             cursor.close()
@@ -254,7 +259,8 @@ class ActionSubmitDirectForm(Action):
                 "fullname": data["fullname"],
                 "phone_number": data["phone_number"],
                 "chosen_major": data["chosen_major"],
-                "award_name": data["award_name"]
+                "award_name": data["award_name"],
+                "evidence_url": data["evidence_url"]
             }
             summary_json = json.dumps(summary, ensure_ascii=False, indent=2)
             
@@ -271,3 +277,79 @@ class ActionSubmitDirectForm(Action):
             print(f"Error saving direct admission candidate: {e}")
             
         return reset_all_flowchart_slots()
+
+
+# --- CANCEL ACTIVE FLOW ---
+class ActionCancelFlow(Action):
+    def name(self) -> Text:
+        return "action_cancel_flow"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        dispatcher.utter_message(
+            text="⚠️ **Đã hủy quy trình đăng ký hiện tại.**\n\n"
+                 "Mọi thông tin nháp đã được xóa sạch. Hệ thống quay về trạng thái hội thoại tự do.\n"
+                 "Bạn có thể đặt câu hỏi hoặc chọn lại phương thức đăng ký."
+        )
+        # Tắt vòng lặp active và reset toàn bộ slots liên quan đến form
+        return [ActiveLoop(None)] + reset_all_flowchart_slots()
+
+
+# --- ASK FOR CONFIRMATION (Duyệt lại hồ sơ) ---
+class ActionAskConfirmRegistration(Action):
+    def name(self) -> Text:
+        return "action_ask_confirm_registration"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        active_loop = tracker.active_loop.get("name")
+        
+        fullname = tracker.get_slot("fullname")
+        phone = tracker.get_slot("phone_number")
+        major = tracker.get_slot("chosen_major")
+        evidence = tracker.get_slot("evidence_url")
+        
+        msg = (
+            f"📝 **Duyệt lại hồ sơ đăng ký xét tuyển**\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"Thí sinh vui lòng kiểm tra kỹ các thông tin dưới đây:\n\n"
+            f"• Họ và tên: **{fullname}**\n"
+            f"• Số điện thoại: **{phone}**\n"
+            f"• Ngành xét tuyển: **{major}**\n"
+        )
+        
+        if active_loop == "hsa_form":
+            msg += (
+                f"• Số báo danh HSA: **{tracker.get_slot('hsa_id')}**\n"
+                f"• Điểm thi HSA: **{tracker.get_slot('hsa_score')} điểm**\n"
+            )
+        elif active_loop == "ielts_form":
+            msg += (
+                f"• Điểm IELTS: **{tracker.get_slot('ielts_score')}**\n"
+                f"• Điểm môn Toán: **{tracker.get_slot('math_score')} điểm**\n"
+            )
+        elif active_loop == "direct_form":
+            msg += (
+                f"• Nội dung giải thưởng: **{tracker.get_slot('award_name')}**\n"
+            )
+        elif active_loop == "thptqg_form":
+            msg += (
+                f"• Tổ hợp xét tuyển: **{tracker.get_slot('thptqg_block')}**\n"
+                f"• Điểm thi THPTQG: **{tracker.get_slot('thptqg_score')} điểm**\n"
+            )
+            
+        msg += (
+            f"• Link minh chứng: {evidence}\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"Nếu mọi thông tin đã chính xác, vui lòng bấm **Xác nhận nộp**.\n"
+            f"Nếu phát hiện sai sót, bạn có thể nhập trực tiếp mục cần sửa (Ví dụ: *'Sửa số điện thoại'*, *'Sửa họ tên'*)."
+        )
+        
+        dispatcher.utter_message(
+            text=msg,
+            buttons=[
+                {"title": "✅ Xác nhận nộp", "payload": "xác nhận"},
+                {"title": "❌ Hủy bỏ hồ sơ", "payload": "hủy bỏ"}
+            ]
+        )
+        return []
+
+

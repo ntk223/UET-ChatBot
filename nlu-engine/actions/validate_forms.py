@@ -104,6 +104,53 @@ def _validate_evidence_url(value: Optional[str], dispatcher: CollectingDispatche
     return cleaned
 
 
+def _validate_confirm_registration(
+    value: Any,
+    dispatcher: CollectingDispatcher,
+    tracker: Tracker,
+) -> Dict[Text, Any]:
+    if not value:
+        return {"confirm_registration": None}
+        
+    val_clean = str(value).strip().lower()
+    
+    # 1. Check for submission confirmation
+    if val_clean in ["xác nhận", "xac nhan", "đúng rồi", "dung roi", "đồng ý", "dong y", "ok", "yes", "đúng", "dung", "nộp", "nop", "xác nhận nộp", "xac nhan nop"]:
+        return {"confirm_registration": "yes"}
+        
+    # 2. Check for slot correction requests
+    keywords_map = {
+        "fullname": ["họ tên", "ho ten", "tên", "ten", "họ và tên", "ho va ten"],
+        "phone_number": ["số điện thoại", "sđt", "sdt", "điện thoại", "dien thoai", "phone", "liên hệ"],
+        "chosen_major": ["ngành", "nganh", "chuyên ngành", "chuyen nganh", "mã ngành", "ma nganh", "chọn ngành", "chon nganh"],
+        "hsa_id": ["số báo danh", "sbd", "mã hsa", "ma hsa", "báo danh"],
+        "hsa_score": ["điểm hsa", "điểm thi hsa", "diem hsa"],
+        "ielts_score": ["điểm ielts", "ielts", "diem ielts"],
+        "math_score": ["điểm toán", "môn toán", "toán", "toan", "diem toan"],
+        "award_name": ["giải", "giải thưởng", "giai", "giai thuong", "bằng khen", "bang khen"],
+        "thptqg_block": ["khối", "tổ hợp", "khoi", "to hop"],
+        "thptqg_score": ["điểm thptqg", "điểm thi thpt", "diem thpt", "điểm thpt", "điểm thi"],
+        "evidence_url": ["minh chứng", "ảnh", "link", "url", "evidence", "minh chung"]
+    }
+    
+    for slot_key, keywords in keywords_map.items():
+        if any(kw in val_clean for kw in keywords):
+            dispatcher.utter_message(
+                text=f"🔄 Hệ thống đã xóa thông tin cũ của mục này. Vui lòng nhập lại **giá trị mới**:"
+            )
+            return {
+                "confirm_registration": None,
+                slot_key: None
+            }
+            
+    # 3. Default fallback when input is not understood
+    dispatcher.utter_message(
+        text="⚠️ Vui lòng nhập **Xác nhận** để hoàn tất hồ sơ, hoặc cho tôi biết mục bạn muốn sửa (Ví dụ: *'sửa số điện thoại'*, *'sửa họ tên'*)."
+    )
+    return {"confirm_registration": None}
+
+
+
 # ═══════════════════════════════════════════════════════════════
 #  VALIDATE FORM: HSA
 # ═══════════════════════════════════════════════════════════════
@@ -180,6 +227,13 @@ class ValidateHsaForm(FormValidationAction):
     ) -> Dict[Text, Any]:
         result = _validate_evidence_url(slot_value, dispatcher)
         return {"evidence_url": result}
+
+    def validate_confirm_registration(
+        self, slot_value: Any, dispatcher: CollectingDispatcher,
+        tracker: Tracker, domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        return _validate_confirm_registration(slot_value, dispatcher, tracker)
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -272,6 +326,13 @@ class ValidateIeltsForm(FormValidationAction):
         result = _validate_evidence_url(slot_value, dispatcher)
         return {"evidence_url": result}
 
+    def validate_confirm_registration(
+        self, slot_value: Any, dispatcher: CollectingDispatcher,
+        tracker: Tracker, domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        return _validate_confirm_registration(slot_value, dispatcher, tracker)
+
+
 
 # ═══════════════════════════════════════════════════════════════
 #  VALIDATE FORM: TUYỂN THẲNG (direct)
@@ -332,6 +393,13 @@ class ValidateDirectForm(FormValidationAction):
     ) -> Dict[Text, Any]:
         result = _validate_evidence_url(slot_value, dispatcher)
         return {"evidence_url": result}
+
+    def validate_confirm_registration(
+        self, slot_value: Any, dispatcher: CollectingDispatcher,
+        tracker: Tracker, domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        return _validate_confirm_registration(slot_value, dispatcher, tracker)
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -416,3 +484,10 @@ class ValidateThptqgForm(FormValidationAction):
     ) -> Dict[Text, Any]:
         result = _validate_evidence_url(slot_value, dispatcher)
         return {"evidence_url": result}
+
+    def validate_confirm_registration(
+        self, slot_value: Any, dispatcher: CollectingDispatcher,
+        tracker: Tracker, domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        return _validate_confirm_registration(slot_value, dispatcher, tracker)
+

@@ -1,0 +1,22 @@
+version: "3.1"
+
+nlu:
+  - intent: cancel
+    examples: |
+      - hủy
+      - huy
+      - hủy bỏ
+      - huy bo
+      - dừng lại
+      - dung lai
+      - thoát
+      - thoat
+      - dừng đăng ký
+      - dung dang ky
+      - hủy đăng ký
+      - huy dang ky
+      - cancel
+      - exit
+      - stop
+      - quay lại menu
+      - quay lai menu

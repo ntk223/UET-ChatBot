@@ -12,6 +12,7 @@ intents:
   - chon_ptxt_tuyen_thang
   - chon_ptxt_thptqg
   - inform
+  - cancel
 
 entities:
   - nganh_hoc
@@ -62,6 +63,12 @@ slots:
           - active_loop: thptqg_form
             requested_slot: chosen_major
 
+  # Context slot: ghi nhớ ngành vừa hỏi để dùng cho các câu hỏi tiếp theo
+  last_queried_major:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom   # set thủ công bằng SlotSet trong action
   # Các slot đặc thù theo nhánh
   hsa_id:
     type: text
@@ -125,11 +132,33 @@ slots:
     mappings:
       - type: from_text
         conditions:
+          - active_loop: hsa_form
+            requested_slot: evidence_url
+          - active_loop: ielts_form
+            requested_slot: evidence_url
+          - active_loop: direct_form
+            requested_slot: evidence_url
           - active_loop: thptqg_form
             requested_slot: evidence_url
+  confirm_registration:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: hsa_form
+            requested_slot: confirm_registration
+          - active_loop: ielts_form
+            requested_slot: confirm_registration
+          - active_loop: direct_form
+            requested_slot: confirm_registration
+          - active_loop: thptqg_form
+            requested_slot: confirm_registration
 
 forms:
   hsa_form:
+    ignored_intents:
+      - cancel
     required_slots:
       - fullname
       - phone_number
@@ -137,7 +166,10 @@ forms:
       - hsa_id
       - hsa_score
       - evidence_url
+      - confirm_registration
   ielts_form:
+    ignored_intents:
+      - cancel
     required_slots:
       - fullname
       - phone_number
@@ -145,15 +177,21 @@ forms:
       - ielts_score
       - math_score
       - evidence_url
+      - confirm_registration
   direct_form:
+    ignored_intents:
+      - cancel
     required_slots:
       - fullname
       - phone_number
       - chosen_major
       - award_name
       - evidence_url
+      - confirm_registration
 
   thptqg_form:
+    ignored_intents:
+      - cancel
     required_slots:
       - fullname
       - phone_number
@@ -161,6 +199,7 @@ forms:
       - thptqg_block
       - thptqg_score
       - evidence_url
+      - confirm_registration
 
 responses:
   utter_greet:
@@ -236,6 +275,8 @@ actions:
   - action_submit_hsa_form
   - action_submit_ielts_form
   - action_submit_direct_form
+  - action_cancel_flow
+  - action_ask_confirm_registration
   - validate_hsa_form
   - validate_ielts_form
   - validate_direct_form

@@ -3,6 +3,9 @@ import * as Lucide from "lucide-react";
 const emojiToIconKey = {
   "📝": "FileText",
   "💸": "Coins",
+  "💰": "Coins",
+  "📊": "BarChart3",
+  "⚠️": "AlertTriangle",
   "💻": "Laptop",
   "🤖": "Bot",
   "🇬🇧": "Globe",

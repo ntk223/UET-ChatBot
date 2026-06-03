@@ -95,7 +95,13 @@ rules:
       - intent: hoi_diem_chuan_nganh
       - action: action_query_benchmark_by_major
 
+  - rule: Hủy bỏ form đang hoạt động
+    steps:
+      - intent: cancel
+      - action: action_cancel_flow
+
   - rule: Phản hồi khi không hiểu (Fallback)
     steps:
       - intent: nlu_fallback
       - action: utter_default
+

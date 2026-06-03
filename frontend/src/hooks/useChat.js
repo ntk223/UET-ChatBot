@@ -75,6 +75,7 @@ const INITIAL_SLOTS = {
   ielts_score: null,
   math_score: null,
   award_name: null,
+  confirm_registration: null,
 };
 
 export function useChat() {
@@ -184,6 +185,7 @@ export function useChat() {
       ielts_score: "Điểm chứng chỉ IELTS",
       math_score: "Điểm môn Toán kết hợp",
       award_name: "Tên giải thưởng đạt được",
+      confirm_registration: "Xác nhận hồ sơ",
     };
     return labels[name] || name;
   };

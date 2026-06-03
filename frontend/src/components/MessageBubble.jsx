@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import ReplyButtons from "./ReplyButtons.jsx";
 import { Brain, ChevronDown, ChevronRight } from "lucide-react";
+import { parseEmojiText } from "../utils/emojiMapper.js";
 
 // ─── Inline Markdown Parser ────────────────────────────────────────────────
 // Hỗ trợ: **bold**, _italic_, `code`, đường kẻ ━━━, xuống dòng
@@ -37,18 +38,31 @@ function parseInlineMarkdown(text) {
 }
 
 function InlineText({ text }) {
-  const parts = parseInlineMarkdown(text);
+  const { cleanedText, Icon } = parseEmojiText(text);
+  const parts = parseInlineMarkdown(cleanedText);
+
+  // Xác định màu sắc/class của icon dựa trên loại icon để có giao diện đẹp nhất
+  let iconClass = "inline-icon";
+  if (Icon) {
+    const name = Icon.displayName || Icon.name || "";
+    if (name.includes("Coins")) iconClass += " icon-green";
+    else if (name.includes("BarChart") || name.includes("Alert")) iconClass += " icon-orange";
+    else if (name.includes("Book") || name.includes("FileText")) iconClass += " icon-blue";
+  }
+
   return (
-    <>
+    <span className="flex-align" style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap' }}>
+      {Icon && <Icon size={15} className={iconClass} style={{ marginRight: '6px', flexShrink: 0 }} />}
       {parts.map((part, i) => {
         if (part.type === "bold")   return <strong key={i}>{part.value}</strong>;
         if (part.type === "italic") return <em key={i}>{part.value}</em>;
         if (part.type === "code")   return <code key={i} className="inline-code">{part.value}</code>;
         return <span key={i}>{part.value}</span>;
       })}
-    </>
+    </span>
   );
 }
+
 
 function renderLines(text) {
   const lines = text.split("\n");

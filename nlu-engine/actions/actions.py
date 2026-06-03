@@ -9,6 +9,8 @@ from .submit_actions import (
     ActionSubmitHsaForm,
     ActionSubmitIeltsForm,
     ActionSubmitDirectForm,
+    ActionCancelFlow,
+    ActionAskConfirmRegistration,
 )
 from .validate_forms import (
     ValidateHsaForm,
@@ -28,6 +30,8 @@ __all__ = [
     "ActionSubmitHsaForm",
     "ActionSubmitIeltsForm",
     "ActionSubmitDirectForm",
+    "ActionCancelFlow",
+    "ActionAskConfirmRegistration",
     # Validate form actions
     "ValidateHsaForm",
     "ValidateIeltsForm",

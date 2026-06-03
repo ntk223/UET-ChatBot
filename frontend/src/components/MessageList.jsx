@@ -2,8 +2,8 @@ import { useEffect, useRef, useMemo } from "react";
 import MessageBubble from "./MessageBubble.jsx";
 
 export default function MessageList({ messages, onReply, isSending }) {
-  const endRef = useRef(null);
-  const prevLengthRef = useRef(messages.length); // theo dõi độ dài trước đó
+  const containerRef = useRef(null);       // ref vào div.chat-body (scroll container)
+  const prevLengthRef = useRef(messages.length);
   const isFirstRender = useRef(true);
 
   const latestMessage = messages[messages.length - 1];
@@ -23,16 +23,19 @@ export default function MessageList({ messages, onReply, isSending }) {
       return;
     }
 
-    // Chỉ scroll khi có tin nhắn MỚI được thêm vào
-    if (messages.length > prevLengthRef.current) {
-      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Chỉ scroll khi có tin nhắn MỚI — scroll trong container, không cuộn trang
+    if (messages.length > prevLengthRef.current && containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
 
     prevLengthRef.current = messages.length;
   }, [messages]);
 
   return (
-    <div className="chat-body">
+    <div className="chat-body" ref={containerRef}>
       {messages.map((message) => {
         const isActive = buttonsDisabledMap
           ? buttonsDisabledMap.has(message.id)
@@ -48,7 +51,6 @@ export default function MessageList({ messages, onReply, isSending }) {
           />
         );
       })}
-      <div ref={endRef} />
     </div>
   );
 }
