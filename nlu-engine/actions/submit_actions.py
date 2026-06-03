@@ -121,7 +121,7 @@ class ActionSubmitHsaForm(Action):
             cursor.execute(f"""
                 INSERT INTO admission_hsa (candidate_id, hsa_id, hsa_score, evidence_url)
                 VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
-            """, (candidate_id, data["hsa_id"], int(data["hsa_score"] or 0), data["evidence_url"]))
+            """, (candidate_id, data["hsa_id"], int(float(data["hsa_score"] or 0)), data["evidence_url"]))
             
             conn.commit()
             cursor.close()
