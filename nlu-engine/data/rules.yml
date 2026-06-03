@@ -85,6 +85,16 @@ rules:
       - intent: hoi_thong_tin_nganh
       - action: action_query_major_info
 
+  - rule: Hỏi học phí theo ngành cụ thể
+    steps:
+      - intent: hoi_hoc_phi_theo_nganh
+      - action: action_query_tuition_by_major
+
+  - rule: Hỏi điểm chuẩn theo ngành cụ thể
+    steps:
+      - intent: hoi_diem_chuan_nganh
+      - action: action_query_benchmark_by_major
+
   - rule: Phản hồi khi không hiểu (Fallback)
     steps:
       - intent: nlu_fallback

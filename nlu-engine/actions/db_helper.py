@@ -38,7 +38,26 @@ def init_db():
     try:
         conn, conn_type = get_db_connection()
         cursor = conn.cursor()
-        
+        # 0. User table for login
+        if conn_type == "postgres":
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(100) NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+        else:
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL,
+                password TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+
         # 1. Majors reference table
         if conn_type == "postgres":
             cursor.execute("""
@@ -68,24 +87,28 @@ def init_db():
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS candidates (
                 id SERIAL PRIMARY KEY,
+                user_id INT,
                 fullname VARCHAR(100) NOT NULL,
                 phone_number VARCHAR(15) NOT NULL,
                 chosen_major_code VARCHAR(10),
                 admission_method VARCHAR(20) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (chosen_major_code) REFERENCES majors(major_code)
+                FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """)
         else:
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS candidates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
                 fullname TEXT NOT NULL,
                 phone_number TEXT NOT NULL,
                 chosen_major_code TEXT,
                 admission_method TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (chosen_major_code) REFERENCES majors(major_code)
+                FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """)
             
@@ -105,6 +128,7 @@ def init_db():
                 candidate_id INT PRIMARY KEY,
                 hsa_id VARCHAR(20) NOT NULL,
                 hsa_score INT NOT NULL,
+                evidence_url TEXT NOT NULL,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
@@ -112,7 +136,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS admission_ielts (
                 candidate_id INT PRIMARY KEY,
                 ielts_score DECIMAL(3,1) NOT NULL,
-                math_score DECIMAL(4,2) NOT NULL,
+                evidence_url TEXT NOT NULL,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
@@ -120,6 +144,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS admission_direct (
                 candidate_id INT PRIMARY KEY,
                 award_name VARCHAR(255) NOT NULL,
+                evidence_url TEXT NOT NULL,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
@@ -138,14 +163,16 @@ def init_db():
                 candidate_id INTEGER PRIMARY KEY,
                 hsa_id TEXT NOT NULL,
                 hsa_score INTEGER NOT NULL,
+                evidence_url TEXT NOT NULL,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS admission_ielts (
                 candidate_id INTEGER PRIMARY KEY,
-                ielts_score REAL NOT NULL,
+                ielts_score REAL NOT NULL,  
                 math_score REAL NOT NULL,
+                evidence_url TEXT NOT NULL,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
@@ -153,6 +180,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS admission_direct (
                 candidate_id INTEGER PRIMARY KEY,
                 award_name TEXT NOT NULL,
+                evidence_url TEXT NOT NULL,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)

@@ -1301,3 +1301,57 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* =============================================
+   MARKDOWN RENDERER — Message Bubble
+   ============================================= */
+
+/* Dòng text thường */
+.message.bot .msg-line {
+  line-height: 1.6;
+}
+
+/* Bullet point */
+.message.bot .msg-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.6;
+}
+
+.message.bot .bullet-dot {
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Đường kẻ ngang */
+.message.bot .msg-divider {
+  border: none;
+  border-top: 1px solid var(--stroke);
+  margin: 6px 0;
+}
+
+/* Inline code */
+.message.bot .inline-code {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: #0f172a;
+}
+
+/* Bold / Italic kế thừa font */
+.message.bot strong {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.message.bot em {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 12px;
+}

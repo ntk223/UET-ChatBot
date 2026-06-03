@@ -4,6 +4,8 @@ intents:
   - greet
   - hoi_thong_tin_nganh
   - hoi_hoc_phi
+  - hoi_hoc_phi_theo_nganh
+  - hoi_diem_chuan_nganh
   - dang_ky_nguyen_vong
   - chon_ptxt_hsa
   - chon_ptxt_ielts
@@ -13,6 +15,8 @@ intents:
 
 entities:
   - nganh_hoc
+  - major
+  - admission_method
 
 slots:
   fullname:
@@ -132,6 +136,7 @@ forms:
       - chosen_major
       - hsa_id
       - hsa_score
+      - evidence_url
   ielts_form:
     required_slots:
       - fullname
@@ -139,12 +144,15 @@ forms:
       - chosen_major
       - ielts_score
       - math_score
+      - evidence_url
   direct_form:
     required_slots:
       - fullname
       - phone_number
       - chosen_major
       - award_name
+      - evidence_url
+
   thptqg_form:
     required_slots:
       - fullname
@@ -222,10 +230,16 @@ responses:
 actions:
   - action_query_major_info
   - action_ask_chosen_major
+  - action_query_tuition_by_major
+  - action_query_benchmark_by_major
   - action_submit_thptqg_form
   - action_submit_hsa_form
   - action_submit_ielts_form
   - action_submit_direct_form
+  - validate_hsa_form
+  - validate_ielts_form
+  - validate_direct_form
+  - validate_thptqg_form
 
 session_config:
   session_expiration_time: 60

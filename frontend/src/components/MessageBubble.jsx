@@ -1,6 +1,89 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import ReplyButtons from "./ReplyButtons.jsx";
-import { Brain, Code, Play, ChevronDown, ChevronRight } from "lucide-react";
+import { Brain, ChevronDown, ChevronRight } from "lucide-react";
+
+// ─── Inline Markdown Parser ────────────────────────────────────────────────
+// Hỗ trợ: **bold**, _italic_, `code`, đường kẻ ━━━, xuống dòng
+function parseInlineMarkdown(text) {
+  // Tách theo pattern: **...** | _..._ | `...`
+  const parts = [];
+  const regex = /(\*\*(.+?)\*\*|_(.+?)_|`(.+?)`)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Phần text thường trước match
+    if (match.index > lastIndex) {
+      parts.push({ type: "text", value: text.slice(lastIndex, match.index) });
+    }
+
+    if (match[0].startsWith("**")) {
+      parts.push({ type: "bold", value: match[2] });
+    } else if (match[0].startsWith("_")) {
+      parts.push({ type: "italic", value: match[3] });
+    } else if (match[0].startsWith("`")) {
+      parts.push({ type: "code", value: match[4] });
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  // Phần còn lại
+  if (lastIndex < text.length) {
+    parts.push({ type: "text", value: text.slice(lastIndex) });
+  }
+
+  return parts;
+}
+
+function InlineText({ text }) {
+  const parts = parseInlineMarkdown(text);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.type === "bold")   return <strong key={i}>{part.value}</strong>;
+        if (part.type === "italic") return <em key={i}>{part.value}</em>;
+        if (part.type === "code")   return <code key={i} className="inline-code">{part.value}</code>;
+        return <span key={i}>{part.value}</span>;
+      })}
+    </>
+  );
+}
+
+function renderLines(text) {
+  const lines = text.split("\n");
+  return lines.map((line, i) => {
+    const isLast = i === lines.length - 1;
+
+    // Đường kẻ ━━━ hoặc ---
+    if (/^[━─\-]{3,}$/.test(line.trim())) {
+      return <hr key={i} className="msg-divider" />;
+    }
+
+    // Dòng trống → khoảng cách
+    if (line.trim() === "") {
+      return <div key={i} style={{ height: "6px" }} />;
+    }
+
+    // Bullet point •
+    if (line.trimStart().startsWith("•") || line.trimStart().startsWith("-")) {
+      const content = line.replace(/^[\s•\-]+/, "");
+      return (
+        <div key={i} className="msg-bullet" style={{ marginBottom: isLast ? 0 : "4px" }}>
+          <span className="bullet-dot">•</span>
+          <span><InlineText text={content} /></span>
+        </div>
+      );
+    }
+
+    return (
+      <div key={i} className="msg-line" style={{ marginBottom: isLast ? 0 : "5px" }}>
+        <InlineText text={line} />
+      </div>
+    );
+  });
+}
+// ──────────────────────────────────────────────────────────────────────────
 
 export default function MessageBubble({ message, onReply, buttonsDisabled }) {
   const [showThinking, setShowThinking] = useState(false);
@@ -9,15 +92,11 @@ export default function MessageBubble({ message, onReply, buttonsDisabled }) {
 
   // Parse [CALL_ACTION: ...]
   let displayText = message.text || "";
-  let actionName = null;
-  let actionJson = null;
 
   if (isBot && message.text && message.text.includes("[CALL_ACTION:")) {
     const parts = message.text.split(/\[CALL_ACTION:\s*(\w+)\]/i);
     if (parts.length >= 3) {
       displayText = parts[0].trim();
-      actionName = parts[1];
-      actionJson = parts[2].trim();
     }
   }
 
@@ -37,9 +116,7 @@ export default function MessageBubble({ message, onReply, buttonsDisabled }) {
           {showThinking && (
             <div className="thinking-content">
               {message.thinking.split("\n").map((line, i) => (
-                <div key={i} className="thinking-line">
-                  {line}
-                </div>
+                <div key={i} className="thinking-line">{line}</div>
               ))}
             </div>
           )}
@@ -48,11 +125,7 @@ export default function MessageBubble({ message, onReply, buttonsDisabled }) {
 
       <div className={bubbleClass}>
         <div className="message-content">
-          {displayText.split("\n").map((paragraph, i) => (
-            <p key={i} style={{ margin: 0, marginBottom: i < displayText.split("\n").length - 1 ? "8px" : 0 }}>
-              {paragraph}
-            </p>
-          ))}
+          {isBot ? renderLines(displayText) : <span>{displayText}</span>}
         </div>
 
         <ReplyButtons
@@ -61,26 +134,6 @@ export default function MessageBubble({ message, onReply, buttonsDisabled }) {
           disabled={buttonsDisabled}
         />
       </div>
-
-      {isBot && actionName && (
-        <div className="action-callback-card">
-          <div className="card-header">
-            <Code size={13} className="icon-blue" />
-            <span>Kích hoạt Sự kiện (CALL_ACTION)</span>
-          </div>
-          <div className="card-body">
-            <div className="action-tag">
-              <Play size={10} fill="currentColor" />
-              <span>{actionName}</span>
-            </div>
-            {actionJson && (
-              <pre className="action-json">
-                <code>{actionJson}</code>
-              </pre>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

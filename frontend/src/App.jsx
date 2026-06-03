@@ -132,7 +132,7 @@ export default function App() {
           />
 
           {/* Quick-test triggers for easier verification */}
-          <div className="quick-test-section">
+          {/* <div className="quick-test-section">
             <h4 className="flex-align">
               <Zap size={14} className="icon-blue" fill="currentColor" />
               <span>Nút Thử Nghiệm Nhanh Nghiệp Vụ (Test Scenarios)</span>
@@ -175,7 +175,7 @@ export default function App() {
                 5. Khai báo Minh chứng
               </button>
             </div>
-          </div>
+          </div> */}
         </section>
 
         {/* RIGHT COLUMN: Chatbot Session Memory Slots & Database Submissions */}

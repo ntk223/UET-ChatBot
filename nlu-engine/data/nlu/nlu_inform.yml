@@ -1,0 +1,93 @@
+version: "3.1"
+
+nlu:
+  - intent: inform
+    examples: |
+      - Nguyễn Trung Kiên
+      - Nguyen Trung Kien
+      - 0912345678
+      - Số HSA của em là HSA-12345
+      - So HSA cua em la HSA-12345
+      - Điểm thi là 95
+      - Diem thi la 95
+      - Em được 6.5 ielts
+      - Em duoc 6.5 ielts
+      - Tổ hợp A00
+      - To hop A00
+      - Điểm thi là 27.5
+      - Diem thi la 27.5
+      - https://cloudinary.com/xyz_evidence.png
+      - Trần Văn B
+      - Tran Van B
+      - 0987654321
+      - HSA-99999
+      - 105
+      - 7.5 ielts
+      - 8.5
+      - Giải Nhất Tin học Quốc gia
+      - Giai Nhat Tin hoc Quoc gia
+      - A01
+      - 28.25
+      - https://drive.google.com/minhchung.png
+      - Khoa học máy tính
+      - Khoa hoc may tinh
+      - khmt
+      - KHMT
+      - Kỹ thuật phần mềm
+      - Ky thuat phan mem
+      - Công nghệ thông tin
+      - Cong nghe thong tin
+      - cntt
+      - CNTT
+      - An toàn thông tin
+      - An toan thong tin
+      - attt
+      - ATTT
+      - Lê Thị Hoa
+      - Le Thi Hoa
+      - 0901234567
+      - HSA-77777
+      - 88 điểm HSA
+      - 88 diem HSA
+      - ielts 8.0
+      - tổ hợp X06
+      - to hop X06
+      - 29.5 điểm
+      - 29.5 diem
+      - Giải Ba Vật lý Quốc gia
+      - Giai Ba Vat ly Quoc gia
+      - A02
+      - tên tôi là Phạm Minh Đức
+      - ten toi la Pham Minh Duc
+      - số điện thoại 0938765432
+      - so dien thoai 0938765432
+      - https://res.cloudinary.com/chung_minh.jpg
+      - điểm tổng kết là 8.5
+      - diem tong ket la 8.5
+      - tôi đạt 7.0 IELTS
+      - toi dat 7.0 IELTS
+      - tên em là Hoàng Anh Tuấn
+      - ten em la Hoang Anh Tuan
+      - sđt của em là 0967123456
+      - sdt cua em la 0967123456
+      - mã HSA của em HSA-A1B2C3
+      - ma HSA cua em HSA-A1B2C3
+      - em được 110 điểm hsa
+      - em duoc 110 diem hsa
+      - điểm sat của em là 1450
+      - diem sat cua em la 1450
+      - ngành em chọn là Trí tuệ nhân tạo
+      - nganh em chon la Tri tue nhan tao
+      - nganh em chon la AI
+      - e chọn ngành cn12
+      - e chon nganh cn12
+      - https://imgur.com/evidence.jpg
+      - https://photos.app.goo.gl/example123
+      - giải nhì hsg toán quốc gia
+      - giai nhi hsg toan quoc gia
+      - huy chuong vang olympic tin hoc quoc te
+      - Huy chương Bạc Olympic Vật lý Quốc tế
+      - tổ hợp D01
+      - to hop D01
+      - 26 diem thpt
+      - 26.75 tổng điểm
