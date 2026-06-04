@@ -6,7 +6,7 @@ import os
 
 # Add actions to path so we can import db_helper
 sys.path.append(os.path.join(os.path.dirname(__file__), "actions"))
-from db_helper import register_user_db, login_user_db, get_candidate_aspirations, verify_candidate_profile
+from db_helper import register_user_db, login_user_db, get_candidate_aspirations, verify_candidate_profile, get_user_by_email
 
 app = Sanic("AuthServer")
 CORS(app)
@@ -42,20 +42,31 @@ async def login(request):
     if not email or not password:
         return json({"status": "error", "message": "Thiếu email hoặc mật khẩu"}, status=400)
     
-    user = login_user_db(email, password)
-    if user:
+    # Check if user exists
+    user = get_user_by_email(email)
+    if not user:
+        # User does not exist, so register them automatically!
+        fullname = email.split("@")[0].capitalize()
+        register_success = register_user_db(email, fullname, password)
+        if not register_success:
+            return json({"status": "error", "message": "Đăng ký tài khoản tự động thất bại"}, status=500)
+        user = get_user_by_email(email)
+        
+    # Attempt login/verify password
+    user_logged_in = login_user_db(email, password)
+    if user_logged_in:
         aspirations = get_candidate_aspirations(email)
         return json({
             "status": "success",
             "user": {
-                "id": user["id"],
-                "email": user["email"],
-                "fullname": user["fullname"]
+                "id": user_logged_in["id"],
+                "email": user_logged_in["email"],
+                "fullname": user_logged_in["fullname"]
             },
             "aspirations": aspirations
         })
     else:
-        return json({"status": "error", "message": "Email hoặc mật khẩu không chính xác"}, status=401)
+        return json({"status": "error", "message": "Mật khẩu không chính xác"}, status=401)
 
 @app.post("/api/verify")
 async def verify(request):
@@ -74,6 +85,14 @@ async def verify(request):
         return json({"status": "success"})
     else:
         return json({"status": "error", "message": "Xác minh thất bại"}, status=500)
+
+@app.get("/api/aspirations")
+async def get_aspirations(request):
+    email = request.args.get("email")
+    if not email:
+        return json({"status": "error", "message": "Thiếu email"}, status=400)
+    aspirations = get_candidate_aspirations(email)
+    return json({"status": "success", "aspirations": aspirations})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5006)

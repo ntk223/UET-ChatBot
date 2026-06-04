@@ -22,7 +22,10 @@ def get_db_connection():
         return conn, "postgres"
     except Exception as e:
         # Fall back to SQLite database file
-        db_path = os.getenv("SQLITE_DB_PATH", "uet_admissions.db")
+        # Find root folder path relative to this file
+        current_file_dir = os.path.dirname(os.path.abspath(__file__))
+        root_dir = os.path.dirname(os.path.dirname(current_file_dir))
+        db_path = os.getenv("SQLITE_DB_PATH", os.path.join(root_dir, "uet_admissions.db"))
         conn = sqlite3.connect(db_path)
         return conn, "sqlite"
 
@@ -38,12 +41,39 @@ def init_db():
     try:
         conn, conn_type = get_db_connection()
         cursor = conn.cursor()
+
+        # Check if current tables are out of date and drop if needed
+        if conn_type == "sqlite":
+            try:
+                cursor.execute("PRAGMA table_info(candidates)")
+                cand_cols = [col[1] for col in cursor.fetchall()]
+                cursor.execute("PRAGMA table_info(users)")
+                user_cols = [col[1] for col in cursor.fetchall()]
+                
+                schema_out_of_date = False
+                if cand_cols and "user_id" not in cand_cols:
+                    schema_out_of_date = True
+                if user_cols and "fullname" not in user_cols:
+                    schema_out_of_date = True
+                    
+                if schema_out_of_date:
+                    print("Schema out of date. Dropping tables to recreate with correct structure...")
+                    cursor.execute("DROP TABLE IF EXISTS admission_thptqg")
+                    cursor.execute("DROP TABLE IF EXISTS admission_hsa")
+                    cursor.execute("DROP TABLE IF EXISTS admission_ielts")
+                    cursor.execute("DROP TABLE IF EXISTS admission_direct")
+                    cursor.execute("DROP TABLE IF EXISTS candidates")
+                    cursor.execute("DROP TABLE IF EXISTS users")
+            except Exception as schema_err:
+                print(f"Error checking schema: {schema_err}")
+
         # 0. User table for login
         if conn_type == "postgres":
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
-                email VARCHAR(100) NOT NULL,
+                email VARCHAR(100) NOT NULL UNIQUE,
+                fullname VARCHAR(100),
                 password VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -52,7 +82,8 @@ def init_db():
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE,
+                fullname TEXT,
                 password TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -93,7 +124,7 @@ def init_db():
                 chosen_major_code VARCHAR(10),
                 admission_method VARCHAR(20) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (chosen_major_code) REFERENCES majors(major_code)
+                FOREIGN KEY (chosen_major_code) REFERENCES majors(major_code),
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """)
@@ -107,7 +138,7 @@ def init_db():
                 chosen_major_code TEXT,
                 admission_method TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (chosen_major_code) REFERENCES majors(major_code)
+                FOREIGN KEY (chosen_major_code) REFERENCES majors(major_code),
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """)
@@ -247,3 +278,144 @@ def find_major_code(chosen_major: str) -> str:
         print(f"Error in find_major_code: {e}")
         
     return "CN1"
+
+def get_user_by_email(email):
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = get_db_cursor(conn, conn_type)
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        cursor.execute(f"SELECT id, email, fullname, password FROM users WHERE email = {placeholder}", (email,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row:
+            return dict(row)
+        return None
+    except Exception as e:
+        print(f"Error in get_user_by_email: {e}")
+        return None
+
+def register_user_db(email, fullname, password):
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        cursor.execute(f"INSERT INTO users (email, fullname, password) VALUES ({placeholder}, {placeholder}, {placeholder})", (email, fullname, password))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error in register_user_db: {e}")
+        return False
+
+def login_user_db(email, password):
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = get_db_cursor(conn, conn_type)
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        cursor.execute(f"SELECT id, email, fullname, password FROM users WHERE email = {placeholder} AND password = {placeholder}", (email, password))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row:
+            return dict(row)
+        return None
+    except Exception as e:
+        print(f"Error in login_user_db: {e}")
+        return None
+
+def get_candidate_aspirations(email):
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = get_db_cursor(conn, conn_type)
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        
+        # Find user_id first
+        cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email,))
+        user_row = cursor.fetchone()
+        if not user_row:
+            cursor.close()
+            conn.close()
+            return []
+        
+        user_id = user_row["id"]
+        
+        # Query candidates for this user
+        cursor.execute(f"""
+            SELECT c.id, c.fullname, c.phone_number, c.chosen_major_code, m.major_name, c.admission_method, c.created_at, c.is_verified
+            FROM candidates c
+            LEFT JOIN majors m ON c.chosen_major_code = m.major_code
+            WHERE c.user_id = {placeholder}
+            ORDER BY c.created_at DESC
+        """, (user_id,))
+        rows = cursor.fetchall()
+        
+        aspirations = []
+        for row in rows:
+            row_dict = dict(row)
+            candidate_id = row_dict["id"]
+            method = row_dict["admission_method"]
+            
+            # Fetch sub-table details based on method
+            details = {}
+            if method == "THPTQG":
+                cursor.execute(f"SELECT block_name, total_score, evidence_url FROM admission_thptqg WHERE candidate_id = {placeholder}", (candidate_id,))
+                sub_row = cursor.fetchone()
+                if sub_row:
+                    details = dict(sub_row)
+            elif method == "HSA":
+                cursor.execute(f"SELECT hsa_id, hsa_score, evidence_url FROM admission_hsa WHERE candidate_id = {placeholder}", (candidate_id,))
+                sub_row = cursor.fetchone()
+                if sub_row:
+                    details = dict(sub_row)
+            elif method == "IELTS":
+                cursor.execute(f"SELECT ielts_score, math_score, evidence_url FROM admission_ielts WHERE candidate_id = {placeholder}", (candidate_id,))
+                sub_row = cursor.fetchone()
+                if sub_row:
+                    details = dict(sub_row)
+            elif method == "TUYEN_THANG":
+                cursor.execute(f"SELECT award_name, evidence_url FROM admission_direct WHERE candidate_id = {placeholder}", (candidate_id,))
+                sub_row = cursor.fetchone()
+                if sub_row:
+                    details = dict(sub_row)
+            
+            aspirations.append({
+                "id": candidate_id,
+                "fullname": row_dict["fullname"],
+                "phone_number": row_dict["phone_number"],
+                "chosen_major": row_dict["major_name"] or row_dict["chosen_major_code"],
+                "admission_method": method,
+                "is_verified": bool(row_dict["is_verified"]),
+                "created_at": str(row_dict["created_at"]),
+                "details": details
+            })
+            
+        cursor.close()
+        conn.close()
+        return aspirations
+    except Exception as e:
+        print(f"Error in get_candidate_aspirations: {e}")
+        return []
+
+def verify_candidate_profile(candidate_id):
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        # Update is_verified to true (represented as 1 in sqlite, TRUE in postgres)
+        val = True if conn_type == "postgres" else 1
+        cursor.execute(f"UPDATE candidates SET is_verified = {placeholder} WHERE id = {placeholder}", (val, candidate_id))
+        conn.commit()
+        
+        # Verify it actually updated
+        cursor.execute(f"SELECT COUNT(*) FROM candidates WHERE id = {placeholder} AND is_verified = {placeholder}", (candidate_id, val))
+        updated = cursor.fetchone()[0] > 0
+        
+        cursor.close()
+        conn.close()
+        return updated
+    except Exception as e:
+        print(f"Error in verify_candidate_profile: {e}")
+        return False
+

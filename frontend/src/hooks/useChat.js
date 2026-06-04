@@ -89,6 +89,105 @@ export function useChat() {
 
   const [senderId, setSenderId] = useState(() => `user-${Math.floor(Math.random() * 1000000)}`);
 
+  // Authentication states
+  const [loggedInCandidate, setLoggedInCandidate] = useState(() => {
+    const saved = localStorage.getItem("uet_candidate_user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [candidateAspirations, setCandidateAspirations] = useState([]);
+  const [authError, setAuthError] = useState("");
+
+  // Sync aspirations when user logs in
+  const fetchAspirations = useCallback(async (email) => {
+    try {
+      const resp = await fetch(`http://localhost:5006/api/aspirations?email=${encodeURIComponent(email)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.status === "success") {
+          setCandidateAspirations(data.aspirations || []);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch aspirations:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (loggedInCandidate && loggedInCandidate.email) {
+      fetchAspirations(loggedInCandidate.email);
+    } else {
+      setCandidateAspirations([]);
+    }
+  }, [loggedInCandidate, fetchAspirations]);
+
+  const loginUser = useCallback(async (email, password) => {
+    setAuthError("");
+    try {
+      const resp = await fetch("http://localhost:5006/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.status === "success") {
+        const userObj = { ...data.user, password };
+        setLoggedInCandidate(userObj);
+        localStorage.setItem("uet_candidate_user", JSON.stringify(userObj));
+        setCandidateAspirations(data.aspirations || []);
+      } else {
+        setAuthError(data.message || "Đăng nhập thất bại");
+      }
+    } catch (e) {
+      setAuthError("Không thể kết nối đến máy chủ xác thực.");
+    }
+  }, []);
+
+  const registerUser = useCallback(async (email, fullname, password) => {
+    setAuthError("");
+    try {
+      const resp = await fetch("http://localhost:5006/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, fullname, password }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.status === "success") {
+        const userObj = { ...data.user, password };
+        setLoggedInCandidate(userObj);
+        localStorage.setItem("uet_candidate_user", JSON.stringify(userObj));
+        setCandidateAspirations([]);
+      } else {
+        setAuthError(data.message || "Đăng ký thất bại");
+      }
+    } catch (e) {
+      setAuthError("Không thể kết nối đến máy chủ xác thực.");
+    }
+  }, []);
+
+  const logoutCandidate = useCallback(() => {
+    setLoggedInCandidate(null);
+    setCandidateAspirations([]);
+    setAuthError("");
+    localStorage.removeItem("uet_candidate_user");
+  }, []);
+
+  const verifyAspiration = useCallback(async (candidateId) => {
+    try {
+      const resp = await fetch("http://localhost:5006/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidate_id: candidateId }),
+      });
+      if (resp.ok) {
+        setCandidateAspirations((prev) =>
+          prev.map((asp) => (asp.id === candidateId ? { ...asp, is_verified: true } : asp))
+        );
+      }
+    } catch (e) {
+      console.warn("Failed to verify aspiration:", e);
+    }
+  }, []);
+
   // Compatibility wrappers
   const useLocalSimulator = chatEngine === "local";
   const setUseLocalSimulator = useCallback((val) => {
@@ -128,8 +227,11 @@ export function useChat() {
   }, [chatEngine]);
 
   const getSenderId = useCallback(() => {
+    if (loggedInCandidate && loggedInCandidate.email) {
+      return loggedInCandidate.email;
+    }
     return senderId;
-  }, [senderId]);
+  }, [senderId, loggedInCandidate]);
 
   const newChat = useCallback(() => {
     const newId = `user-${Math.floor(Math.random() * 1000000)}`;
@@ -937,6 +1039,12 @@ export function useChat() {
         });
 
         setMessages((prev) => [...prev, botMsg]);
+
+        if (botResponse.callAction && loggedInCandidate && loggedInCandidate.email) {
+          setTimeout(() => {
+            fetchAspirations(loggedInCandidate.email);
+          }, 1000);
+        }
       } catch (err) {
         setError(err.message || "Đã xảy ra lỗi khi kết nối mô hình AI.");
 
@@ -953,7 +1061,7 @@ export function useChat() {
         setIsSending(false);
       }
     },
-    [messages, isSending, chatEngine, runLocalSimulator, getSenderId, apiKey, systemPrompt]
+    [messages, isSending, chatEngine, runLocalSimulator, getSenderId, apiKey, systemPrompt, loggedInCandidate, fetchAspirations]
   );
 
   const sendText = useCallback((text) => sendMessage({ text, payloadValue: null }), [
@@ -1002,6 +1110,16 @@ export function useChat() {
     useLocalSimulator,
     setUseLocalSimulator,
     getSlotLabel,
+
+    // Authentication
+    loggedInCandidate,
+    logoutCandidate,
+    candidateAspirations,
+    authError,
+    setAuthError,
+    loginUser,
+    registerUser,
+    verifyAspiration,
   };
 
 }

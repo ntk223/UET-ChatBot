@@ -40,11 +40,20 @@ class ActionSubmitThptqgForm(Action):
             major_code = find_major_code(data["chosen_major"])
             placeholder = "%s" if conn_type == "postgres" else "?"
             
+            # Get sender_id (could be user email if logged in)
+            sender_id = tracker.sender_id
+            user_id = None
+            if sender_id and "@" in sender_id:
+                cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (sender_id,))
+                user_row = cursor.fetchone()
+                if user_row:
+                    user_id = user_row[0] if conn_type == "postgres" else user_row["id"]
+
             # Ghi vào bảng gốc candidates
             cursor.execute(f"""
-                INSERT INTO candidates (fullname, phone_number, chosen_major_code, admission_method)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, 'THPTQG')
-            """, (data["fullname"], data["phone_number"], major_code))
+                INSERT INTO candidates (user_id, fullname, phone_number, chosen_major_code, admission_method)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, 'THPTQG')
+            """, (user_id, data["fullname"], data["phone_number"], major_code))
             
             candidate_id = None
             if conn_type == "postgres":
@@ -104,11 +113,20 @@ class ActionSubmitHsaForm(Action):
             major_code = find_major_code(data["chosen_major"])
             placeholder = "%s" if conn_type == "postgres" else "?"
             
+            # Get sender_id (could be user email if logged in)
+            sender_id = tracker.sender_id
+            user_id = None
+            if sender_id and "@" in sender_id:
+                cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (sender_id,))
+                user_row = cursor.fetchone()
+                if user_row:
+                    user_id = user_row[0] if conn_type == "postgres" else user_row["id"]
+
             # Ghi vào bảng gốc candidates
             cursor.execute(f"""
-                INSERT INTO candidates (fullname, phone_number, chosen_major_code, admission_method)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, 'HSA')
-            """, (data["fullname"], data["phone_number"], major_code))
+                INSERT INTO candidates (user_id, fullname, phone_number, chosen_major_code, admission_method)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, 'HSA')
+            """, (user_id, data["fullname"], data["phone_number"], major_code))
             
             candidate_id = None
             if conn_type == "postgres":
@@ -168,11 +186,20 @@ class ActionSubmitIeltsForm(Action):
             major_code = find_major_code(data["chosen_major"])
             placeholder = "%s" if conn_type == "postgres" else "?"
             
+            # Get sender_id (could be user email if logged in)
+            sender_id = tracker.sender_id
+            user_id = None
+            if sender_id and "@" in sender_id:
+                cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (sender_id,))
+                user_row = cursor.fetchone()
+                if user_row:
+                    user_id = user_row[0] if conn_type == "postgres" else user_row["id"]
+
             # Ghi vào bảng gốc candidates
             cursor.execute(f"""
-                INSERT INTO candidates (fullname, phone_number, chosen_major_code, admission_method)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, 'IELTS')
-            """, (data["fullname"], data["phone_number"], major_code))
+                INSERT INTO candidates (user_id, fullname, phone_number, chosen_major_code, admission_method)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, 'IELTS')
+            """, (user_id, data["fullname"], data["phone_number"], major_code))
             
             candidate_id = None
             if conn_type == "postgres":
@@ -232,11 +259,20 @@ class ActionSubmitDirectForm(Action):
             major_code = find_major_code(data["chosen_major"])
             placeholder = "%s" if conn_type == "postgres" else "?"
             
+            # Get sender_id (could be user email if logged in)
+            sender_id = tracker.sender_id
+            user_id = None
+            if sender_id and "@" in sender_id:
+                cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (sender_id,))
+                user_row = cursor.fetchone()
+                if user_row:
+                    user_id = user_row[0] if conn_type == "postgres" else user_row["id"]
+
             # Ghi vào bảng gốc candidates
             cursor.execute(f"""
-                INSERT INTO candidates (fullname, phone_number, chosen_major_code, admission_method)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, 'TUYEN_THANG')
-            """, (data["fullname"], data["phone_number"], major_code))
+                INSERT INTO candidates (user_id, fullname, phone_number, chosen_major_code, admission_method)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, 'TUYEN_THANG')
+            """, (user_id, data["fullname"], data["phone_number"], major_code))
             
             candidate_id = None
             if conn_type == "postgres":

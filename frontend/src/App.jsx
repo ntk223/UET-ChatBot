@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import "./styles.css";
 import ChatWindow from "./components/ChatWindow.jsx";
 import FlowchartVisualizer from "./components/FlowchartVisualizer.jsx";
+import StudentPortal from "./components/StudentPortal.jsx";
+import MockDatabaseView from "./components/MockDatabaseView.jsx";
+import AspirationsList from "./components/AspirationsList.jsx";
 import { useChat } from "./hooks/useChat.js";
 import {
   Settings,
@@ -44,12 +47,29 @@ export default function App() {
     chatEngine,
     setChatEngine,
     getSlotLabel,
+    loggedInCandidate,
+    logoutCandidate,
+    candidateAspirations,
+    authError,
+    setAuthError,
+    loginUser,
+    registerUser,
+    verifyAspiration,
   } = useChat();
 
   const [promptInput, setPromptInput] = useState(systemPrompt);
   const [showPromptSaveSuccess, setShowPromptSaveSuccess] = useState(false);
   const [activePromptTab, setActivePromptTab] = useState("editor"); // 'editor' | 'kb' | 'settings'
   const [showSubmissionCelebration, setShowSubmissionCelebration] = useState(false);
+  const [rightColTab, setRightColTab] = useState("flowchart"); // 'flowchart' | 'aspirations'
+  const [prevAspirationsCount, setPrevAspirationsCount] = useState(0);
+
+  useEffect(() => {
+    if (candidateAspirations.length > prevAspirationsCount) {
+      setRightColTab("aspirations");
+    }
+    setPrevAspirationsCount(candidateAspirations.length);
+  }, [candidateAspirations.length, prevAspirationsCount]);
 
   // Sync prompt editor when default is restored or loaded
   useEffect(() => {
@@ -82,6 +102,31 @@ export default function App() {
     sendText(text);
   };
 
+  if (!loggedInCandidate) {
+    return (
+      <div className="guest-mode">
+        <header className="hero flex-column align-center text-center" style={{ width: '100%', maxWidth: '480px', margin: '0 auto 24px', padding: '24px' }}>
+          <div className="logo-icon-wrapper" style={{ margin: '0 auto 12px', background: 'var(--accent-light)', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Brain className="logo-icon" size={24} style={{ color: 'var(--accent)' }} />
+          </div>
+          <h1>UET Admissions</h1>
+          <p className="subtitle" style={{ fontSize: '13px', marginTop: '4px' }}>
+            Hệ thống tiếp nhận hồ sơ xét tuyển &amp; tư vấn tự động qua Rasa NLU
+          </p>
+        </header>
+
+        <div className="guest-login-wrapper">
+          <StudentPortal
+            authError={authError}
+            setAuthError={setAuthError}
+            loginUser={loginUser}
+            registerUser={registerUser}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <header className="hero">
@@ -95,13 +140,38 @@ export default function App() {
             Hệ thống hỗ trợ tư vấn tuyển sinh và tiếp nhận hồ sơ nguyện vọng trực tuyến tự động qua Rasa NLU.
           </p>
         </div>
-        <div className="system-status-card">
-          <div className="status-label">Trạng thái kết nối</div>
-          <div className="status-value flex-align">
-            <span className={`dot-online ${apiStatus === "offline" ? "offline" : ""}`} />
-            <span>
-              {`Rasa NLU Engine (${apiStatus === "online" ? "Trực tuyến" : "Ngoại tuyến/Lỗi"})`}
-            </span>
+        <div className="header-actions flex-align" style={{ gap: '16px' }}>
+          {loggedInCandidate && (
+            <div className="system-status-card candidate-profile-header-card" style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 'auto' }}>
+              <div className="logo-icon-wrapper" style={{ background: 'var(--accent-light)', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <User size={18} style={{ color: 'var(--accent)' }} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--ink)' }}>
+                  {loggedInCandidate.fullname}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
+                  {loggedInCandidate.email}
+                </div>
+              </div>
+              <button 
+                onClick={logoutCandidate} 
+                className="logout-btn"
+                style={{ marginLeft: '10px', padding: '6px 12px', fontSize: '11px' }}
+              >
+                Đăng xuất
+              </button>
+            </div>
+          )}
+
+          <div className="system-status-card">
+            <div className="status-label">Trạng thái kết nối</div>
+            <div className="status-value flex-align">
+              <span className={`dot-online ${apiStatus === "offline" ? "offline" : ""}`} />
+              <span>
+                {`Rasa NLU Engine (${apiStatus === "online" ? "Trực tuyến" : "Ngoại tuyến/Lỗi"})`}
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -181,66 +251,49 @@ export default function App() {
 
         {/* RIGHT COLUMN: Chatbot Session Memory Slots & Database Submissions */}
         <section className="column right-column">
-          <FlowchartVisualizer
-            slots={slots}
-            currentFlow={currentFlow}
-            nextSlotToCollect={nextSlotToCollect}
+          <div className="right-column-tabs-header flex-align">
+            <button
+              className={`right-tab-btn ${rightColTab === "flowchart" ? "active" : ""}`}
+              onClick={() => setRightColTab("flowchart")}
+              type="button"
+            >
+              <Brain size={14} />
+              <span>Tiến trình tuyển sinh</span>
+            </button>
+            <button
+              className={`right-tab-btn ${rightColTab === "aspirations" ? "active" : ""}`}
+              onClick={() => setRightColTab("aspirations")}
+              type="button"
+            >
+              <BookOpen size={14} />
+              <span>Nguyện vọng đã đặt</span>
+              {candidateAspirations.length > 0 && (
+                <span className="tab-badge">{candidateAspirations.length}</span>
+              )}
+            </button>
+          </div>
+
+          <div className="right-column-tab-content">
+            {rightColTab === "flowchart" ? (
+              <FlowchartVisualizer
+                slots={slots}
+                currentFlow={currentFlow}
+                nextSlotToCollect={nextSlotToCollect}
+                getSlotLabel={getSlotLabel}
+              />
+            ) : (
+              <AspirationsList
+                candidateAspirations={candidateAspirations}
+                verifyAspiration={verifyAspiration}
+              />
+            )}
+          </div>
+
+          <MockDatabaseView
+            submissions={submissions}
+            clearSubmissions={clearSubmissions}
             getSlotLabel={getSlotLabel}
           />
-
-          {/* Candidate database submission records */}
-          <div className="panel-card database-card">
-            <div className="panel-header-action">
-              <h2>Mock Database (Hồ sơ đã lưu)</h2>
-              {submissions.length > 0 && (
-                <button className="ghost-button icon-only" onClick={clearSubmissions} title="Xóa toàn bộ hồ sơ">
-                  <Trash2 size={14} />
-                </button>
-              )}
-            </div>
-            <p className="panel-desc">Các hồ sơ được thêm tự động khi sự kiện [CALL_ACTION] được gọi thành công:</p>
-
-            <div className="submissions-list">
-              {submissions.length === 0 ? (
-                <div className="empty-db-state">
-                  <Database size={32} className="icon-muted" />
-                  <p>Chưa có hồ sơ thí sinh nào được lưu. Hãy hoàn tất quy trình điền form trên chatbot để lưu hồ sơ!</p>
-                </div>
-              ) : (
-                submissions.map((sub, index) => (
-                  <div key={sub.id || index} className="db-record-card">
-                    <div className="db-record-header">
-                      <div className="db-record-title flex-align">
-                        <User size={13} className="icon-blue" />
-                        <strong>{sub.fullname}</strong>
-                      </div>
-                      <span className="db-record-method">{sub.admission_method}</span>
-                    </div>
-                    <div className="db-record-details">
-                      <div className="detail-row">
-                        <span>SĐT:</span> <strong>{sub.phone_number}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Ngành:</span> <strong>{sub.chosen_major}</strong>
-                      </div>
-                      {Object.keys(sub.details)
-                        .slice(3)
-                        .map((detailKey) => (
-                          <div key={detailKey} className="detail-row sub-detail">
-                            <span>{getSlotLabel(detailKey)}:</span>
-                            <span className="detail-val">{sub.details[detailKey]}</span>
-                          </div>
-                        ))}
-                    </div>
-                    <div className="db-record-footer">
-                      <span className="record-date">{sub.created_at}</span>
-                      <span className="record-id">{sub.id}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </section>
       </main>
     </div>
