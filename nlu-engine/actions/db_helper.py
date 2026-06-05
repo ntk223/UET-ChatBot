@@ -151,6 +151,8 @@ def init_db():
                 block_name VARCHAR(5) NOT NULL,
                 total_score DECIMAL(4,2) NOT NULL,
                 evidence_url VARCHAR(255) NOT NULL,
+                ielts_score DECIMAL(3,1),
+                ielts_evidence_url VARCHAR(255),
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
@@ -186,6 +188,8 @@ def init_db():
                 block_name TEXT NOT NULL,
                 total_score REAL NOT NULL,
                 evidence_url TEXT NOT NULL,
+                ielts_score REAL,
+                ielts_evidence_url TEXT,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
@@ -245,6 +249,32 @@ def init_db():
             for m in majors_initial:
                 cursor.execute(f"INSERT INTO majors VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})", m)
                 
+        # Ensure ielts_score and ielts_evidence_url columns exist in admission_thptqg table
+        if conn_type == "postgres":
+            # Check ielts_score
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='admission_thptqg' AND column_name='ielts_score';
+            """)
+            if not cursor.fetchone():
+                cursor.execute("ALTER TABLE admission_thptqg ADD COLUMN ielts_score NUMERIC(3,1)")
+            # Check ielts_evidence_url
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='admission_thptqg' AND column_name='ielts_evidence_url';
+            """)
+            if not cursor.fetchone():
+                cursor.execute("ALTER TABLE admission_thptqg ADD COLUMN ielts_evidence_url VARCHAR(255)")
+        else:
+            cursor.execute("PRAGMA table_info(admission_thptqg)")
+            cols = [col[1] for col in cursor.fetchall()]
+            if "ielts_score" not in cols:
+                cursor.execute("ALTER TABLE admission_thptqg ADD COLUMN ielts_score REAL")
+            if "ielts_evidence_url" not in cols:
+                cursor.execute("ALTER TABLE admission_thptqg ADD COLUMN ielts_evidence_url TEXT")
+
         conn.commit()
         conn.close()
         print(f"Database initialized successfully with connection type: {conn_type}")
@@ -418,4 +448,8 @@ def verify_candidate_profile(candidate_id):
     except Exception as e:
         print(f"Error in verify_candidate_profile: {e}")
         return False
+
+
+# Auto-run database schema setup and migrations
+init_db()
 

@@ -548,6 +548,24 @@ export function useChat() {
             failMsg = "⚠️ Tổng điểm nằm ngoài thang điểm 30. Vui lòng nhập tổng điểm 3 môn trong khoảng **0 – 30**:";
             failThink = "Điểm thi THPTQG sai định dạng hoặc ngoài phạm vi [0-30]. Yêu cầu nhập lại.";
           }
+        } else if (tempNextSlot === "has_ielts") {
+          const cleaned = text.toLowerCase().trim();
+          if (["có", "co", "yes", "y", "true", "1", "có, mình có"].includes(cleaned)) {
+            tempSlots.has_ielts = "Có";
+            valAccepted = true;
+            thinkingLines.push(`  + Chấp nhận has_ielts = "Có"`);
+          } else if (["không", "khong", "no", "n", "false", "0", "không có"].includes(cleaned)) {
+            tempSlots.has_ielts = "Không";
+            valAccepted = true;
+            thinkingLines.push(`  + Chấp nhận has_ielts = "Không"`);
+          } else {
+            failMsg = "⚠️ Vui lòng chọn hoặc trả lời **Có** hoặc **Không**:";
+            failThink = "Nhập câu trả lời IELTS không đúng định dạng.";
+            responseButtons = [
+              { title: "Có", payload: "Có" },
+              { title: "Không", payload: "Không" },
+            ];
+          }
         } else if (tempNextSlot === "evidence_url") {
           if (text.includes(".") && text.length > 5) {
             tempSlots.evidence_url = text;
@@ -626,7 +644,7 @@ export function useChat() {
 
           // Now evaluate what is the NEXT unfilled slot in the active flow
           const flowSlots = {
-            THPTQG: ["fullname", "phone_number", "chosen_major", "thptqg_block", "thptqg_score", "evidence_url"],
+            THPTQG: ["fullname", "phone_number", "chosen_major", "thptqg_block", "thptqg_score", "has_ielts", ...(tempSlots.has_ielts === "Có" ? ["ielts_score"] : []), "evidence_url"],
             HSA: ["fullname", "phone_number", "chosen_major", "hsa_id", "hsa_score"],
             IELTS: ["fullname", "phone_number", "chosen_major", "ielts_score", "math_score"],
             TUYEN_THANG: ["fullname", "phone_number", "chosen_major", "award_name"],
@@ -642,6 +660,12 @@ export function useChat() {
 
             if (tempNextSlot === "chosen_major") responseButtons = majorButtons;
             if (tempNextSlot === "thptqg_block") responseButtons = blockButtons;
+            if (tempNextSlot === "has_ielts") {
+              responseButtons = [
+                { title: "Có", payload: "Có" },
+                { title: "Không", payload: "Không" },
+              ];
+            }
           } else {
             // ALL SLOTS FILLED! CALL ACTION (Rule 4: Định dạng Output cuối cùng)
             const actionName = `action_submit_${tempFlow.toLowerCase()}_form`;
@@ -673,11 +697,27 @@ export function useChat() {
               }
             }
 
-            responseText = `Cảm ơn bạn **\${tempSlots.fullname}**! Hồ sơ xét tuyển theo phương thức **\${tempFlow}** của bạn đã được lưu nhận thành công vào hệ thống.\${benchmarkMsg}\n\nMã hồ sơ của bạn là **#UET-\${Math.floor(100000 + Math.random() * 900000)}**.\n\nThông tin chi tiết đã gửi:\n- Số điện thoại: \${tempSlots.phone_number}\n- Ngành đăng ký: \${tempSlots.chosen_major}\n` +
+            let ieltsBonusMsg = "";
+            if (tempFlow === "THPTQG" && tempSlots.has_ielts === "Có" && tempSlots.ielts_score) {
+              const ieltsVal = parseFloat(tempSlots.ielts_score);
+              let bonus = 0.0;
+              if (ieltsVal >= 7.5) bonus = 2.5;
+              else if (ieltsVal >= 7.0) bonus = 2.0;
+              else if (ieltsVal >= 6.5) bonus = 1.5;
+              else if (ieltsVal >= 6.0) bonus = 1.0;
+              else if (ieltsVal >= 5.5) bonus = 0.5;
+
+              const baseScore = parseFloat(tempSlots.thptqg_score || 0);
+              const finalScore = baseScore + bonus;
+              ieltsBonusMsg = `\n- Điểm IELTS quy đổi: ${ieltsVal} (Cộng ${bonus} điểm)\n- Tổng điểm xét tuyển sau quy đổi: ${finalScore.toFixed(2)}`;
+            }
+
+            responseText = `Cảm ơn bạn **\${tempSlots.fullname}**! Hồ sơ xét tuyển theo phương thức **\${tempFlow}** của bạn đã được lưu nhận thành công vào hệ thống.\${benchmarkMsg}\n\nMã hồ sơ của bạn là **#UET-\\${Math.floor(100000 + Math.random() * 900000)}**.\n\nThông tin chi tiết đã gửi:\n- Số điện thoại: \${tempSlots.phone_number}\n- Ngành đăng ký: \${tempSlots.chosen_major}\n` +
               activeSlots
                 .slice(3)
                 .map((s) => `- \${getSlotLabel(s)}: \${tempSlots[s]}`)
                 .join("\n") +
+              ieltsBonusMsg +
               `\n\n[CALL_ACTION: \${actionName}]\n` +
               JSON.stringify(summaryData, null, 2);
 

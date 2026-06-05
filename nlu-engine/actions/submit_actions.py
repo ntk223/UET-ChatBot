@@ -12,6 +12,7 @@ def reset_all_flowchart_slots() -> List[Dict[Text, Any]]:
         SlotSet("chosen_major", None),
         SlotSet("hsa_id", None),
         SlotSet("hsa_score", None),
+        SlotSet("has_ielts", None),
         SlotSet("ielts_score", None),
         SlotSet("math_score", None),
         SlotSet("award_name", None),
@@ -19,9 +20,23 @@ def reset_all_flowchart_slots() -> List[Dict[Text, Any]]:
         SlotSet("thptqg_score", None),
         SlotSet("evidence_url", None),
         SlotSet("confirm_registration", None),
-        # Giữ lại last_queried_major để user vẫn hỏi thêm sau khi nộp hồ sơ
-        # SlotSet("last_queried_major", None),  # uncomment nếu muốn reset hẳn
     ]
+
+
+def get_ielts_bonus(ielts_score: float) -> float:
+    if not ielts_score:
+        return 0.0
+    if ielts_score >= 7.5:
+        return 2.5
+    elif ielts_score >= 7.0:
+        return 2.0
+    elif ielts_score >= 6.5:
+        return 1.5
+    elif ielts_score >= 6.0:
+        return 1.0
+    elif ielts_score >= 5.5:
+        return 0.5
+    return 0.0
 
 
 # --- SUBMIT FORM THPTQG ---
@@ -30,7 +45,7 @@ class ActionSubmitThptqgForm(Action):
         return "action_submit_thptqg_form"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        slots = ["fullname", "phone_number", "chosen_major", "thptqg_block", "thptqg_score", "evidence_url"]
+        slots = ["fullname", "phone_number", "chosen_major", "thptqg_block", "thptqg_score", "has_ielts", "ielts_score", "ielts_evidence_url", "evidence_url"]
         data = {s: tracker.get_slot(s) for s in slots}
         
         try:
@@ -62,11 +77,25 @@ class ActionSubmitThptqgForm(Action):
             else:
                 candidate_id = cursor.lastrowid
                 
+            # Tính điểm cộng IELTS
+            ielts_val = data["ielts_score"]
+            ielts_score_float = None
+            bonus_score = 0.0
+            if data["has_ielts"] == "Có" and ielts_val:
+                try:
+                    ielts_score_float = float(ielts_val)
+                    bonus_score = get_ielts_bonus(ielts_score_float)
+                except ValueError:
+                    pass
+
+            total_score = float(data["thptqg_score"] or 0)
+            final_score = total_score + bonus_score
+
             # Ghi vào bảng phụ admission_thptqg
             cursor.execute(f"""
-                INSERT INTO admission_thptqg (candidate_id, block_name, total_score, evidence_url)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
-            """, (candidate_id, data["thptqg_block"], float(data["thptqg_score"] or 0), data["evidence_url"]))
+                INSERT INTO admission_thptqg (candidate_id, block_name, total_score, evidence_url, ielts_score, ielts_evidence_url)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """, (candidate_id, data["thptqg_block"], total_score, data["evidence_url"], ielts_score_float, data["ielts_evidence_url"]))
             
             conn.commit()
             cursor.close()
@@ -78,14 +107,23 @@ class ActionSubmitThptqgForm(Action):
                 "chosen_major": data["chosen_major"],
                 "thptqg_block": data["thptqg_block"],
                 "thptqg_score": data["thptqg_score"],
+                "has_ielts": data["has_ielts"],
+                "ielts_score": data["ielts_score"],
+                "bonus_score": bonus_score,
+                "final_score": final_score,
                 "evidence_url": data["evidence_url"]
             }
             summary_json = json.dumps(summary, ensure_ascii=False, indent=2)
             
+            bonus_text = f"- Điểm IELTS quy đổi: {ielts_score_float} (Cộng {bonus_score} điểm)\n- Tổng điểm xét tuyển sau quy đổi: {final_score}\n" if ielts_score_float else ""
+
             dispatcher.utter_message(
                 text=f"Cảm ơn bạn **{data['fullname']}**! Hồ sơ xét tuyển phương thức **THPTQG** của bạn đã được ghi nhận thành công.\n"
                      f"- Số điện thoại: {data['phone_number']}\n"
                      f"- Ngành xét tuyển: {data['chosen_major']}\n"
+                     f"- Tổ hợp: {data['thptqg_block']}\n"
+                     f"- Điểm thi THPTQG: {total_score}\n"
+                     f"{bonus_text}"
                      f"- Mã số hồ sơ: #UET-{candidate_id}\n\n"
                      f"Ban tuyển sinh UET sẽ sớm liên hệ lại với bạn để thẩm định minh chứng!\n\n"
                      f"[CALL_ACTION: action_submit_thptqg_form]\n{summary_json}"

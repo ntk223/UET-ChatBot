@@ -43,7 +43,7 @@ class SmartValidationMixin:
         important_slots = {
             "fullname", "phone_number", "chosen_major", "hsa_id", 
             "hsa_score", "ielts_score", "math_score", "award_name", 
-            "thptqg_block", "thptqg_score", "evidence_url"
+            "thptqg_block", "thptqg_score", "evidence_url", "ielts_evidence_url"
         }
 
         failed_slots = []
@@ -83,7 +83,8 @@ class SmartValidationMixin:
             slots_to_reset = [
                 "fullname", "phone_number", "chosen_major", "hsa_id", 
                 "hsa_score", "ielts_score", "math_score", "award_name", 
-                "thptqg_block", "thptqg_score", "evidence_url", "confirm_registration"
+                "thptqg_block", "thptqg_score", "evidence_url", "ielts_evidence_url",
+                "confirm_registration", "has_ielts"
             ]
             for s in slots_to_reset:
                 reset_events.append(SlotSet(s, None))
@@ -223,7 +224,8 @@ def _validate_confirm_registration(
         "award_name": ["giải", "giải thưởng", "giai", "giai thuong", "bằng khen", "bang khen"],
         "thptqg_block": ["khối", "tổ hợp", "khoi", "to hop"],
         "thptqg_score": ["điểm thptqg", "điểm thi thpt", "diem thpt", "điểm thpt", "điểm thi"],
-        "evidence_url": ["minh chứng", "ảnh", "link", "url", "evidence", "minh chung"]
+        "evidence_url": ["minh chứng", "ảnh", "link", "url", "evidence", "minh chung"],
+        "ielts_evidence_url": ["minh chứng ielts", "ảnh ielts", "link ielts", "chứng chỉ ielts", "scan ielts"]
     }
     
     for slot_key, keywords in keywords_map.items():
@@ -503,6 +505,75 @@ class ValidateThptqgForm(SmartValidationMixin, FormValidationAction):
     def name(self) -> Text:
         return "validate_thptqg_form"
 
+    async def required_slots(
+        self,
+        domain_slots: List[Text],
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> List[Text]:
+        slots = ["fullname", "phone_number", "chosen_major", "thptqg_block", "thptqg_score", "evidence_url", "has_ielts"]
+        has_ielts_val = tracker.get_slot("has_ielts")
+        if has_ielts_val:
+            normalized = str(has_ielts_val).strip().lower()
+            if normalized in ["có", "co", "yes", "y", "true", "có, mình có"]:
+                slots.append("ielts_score")
+                slots.append("ielts_evidence_url")
+        slots.append("confirm_registration")
+        return slots
+
+    def validate_has_ielts(
+        self, slot_value: Any, dispatcher: CollectingDispatcher,
+        tracker: Tracker, domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        if not slot_value:
+            return {"has_ielts": None}
+        cleaned = str(slot_value).strip().lower()
+        if cleaned in ["có", "co", "yes", "y", "true", "1", "có, mình có"]:
+            return {"has_ielts": "Có"}
+        elif cleaned in ["không", "khong", "no", "n", "false", "0", "không có"]:
+            return {"has_ielts": "Không", "ielts_score": None}
+        else:
+            dispatcher.utter_message(
+                text="⚠️ Vui lòng trả lời **Có** hoặc **Không**:"
+            )
+            return {"has_ielts": None}
+
+    def validate_ielts_score(
+        self, slot_value: Any, dispatcher: CollectingDispatcher,
+        tracker: Tracker, domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Điểm IELTS: từ 0.0 đến 9.0, bước 0.5."""
+        if not slot_value:
+            return {"ielts_score": None}
+        cleaned = str(slot_value).strip().lower()
+        if cleaned in ["không", "khong", "no", "n", "none", "bỏ qua", "quay xe"]:
+            return {"has_ielts": "Không", "ielts_score": None}
+
+        numbers = re.findall(r"\d+(?:[.,]\d+)?", str(slot_value))
+        if not numbers:
+            dispatcher.utter_message(
+                text="⚠️ Điểm IELTS không hợp lệ. Vui lòng nhập điểm từ **0.0 đến 9.0** "
+                     "(bước 0.5). Ví dụ: **6.5** hoặc **7.0**"
+            )
+            return {"ielts_score": None}
+        score = float(numbers[0].replace(",", "."))
+        valid_scores = [round(x * 0.5, 1) for x in range(0, 19)]  # 0.0 đến 9.0
+        if score not in valid_scores:
+            dispatcher.utter_message(
+                text=f"⚠️ Điểm IELTS **{score}** không hợp lệ. "
+                     f"IELTS chỉ có các mức: 0.0, 0.5, 1.0, ..., 9.0. "
+                     f"Vui lòng nhập lại (ví dụ: **6.5**, **7.0**):"
+            )
+            return {"ielts_score": None}
+        if score < 5.5:
+            dispatcher.utter_message(
+                text=f"⚠️ Điểm IELTS **{score}** thấp hơn mức tối thiểu để xét quy đổi điểm cộng (**5.5**). "
+                     f"Vui lòng nhập lại nếu bạn có điểm từ 5.5 trở lên, hoặc nhập **Không** để bỏ qua."
+            )
+            return {"ielts_score": None}
+        return {"ielts_score": str(score)}
+
     def validate_fullname(
         self, slot_value: Any, dispatcher: CollectingDispatcher,
         tracker: Tracker, domain: DomainDict,
@@ -577,6 +648,14 @@ class ValidateThptqgForm(SmartValidationMixin, FormValidationAction):
     ) -> Dict[Text, Any]:
         result = _validate_evidence_url(slot_value, dispatcher)
         return {"evidence_url": result}
+
+    def validate_ielts_evidence_url(
+        self, slot_value: Any, dispatcher: CollectingDispatcher,
+        tracker: Tracker, domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """URL minh chứng chứng chỉ IELTS."""
+        result = _validate_evidence_url(slot_value, dispatcher)
+        return {"ielts_evidence_url": result}
 
     def validate_confirm_registration(
         self, slot_value: Any, dispatcher: CollectingDispatcher,

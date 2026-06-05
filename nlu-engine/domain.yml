@@ -94,6 +94,8 @@ slots:
         conditions:
           - active_loop: ielts_form
             requested_slot: ielts_score
+          - active_loop: thptqg_form
+            requested_slot: ielts_score
   math_score:
     type: text
     influence_conversation: false
@@ -140,6 +142,14 @@ slots:
             requested_slot: evidence_url
           - active_loop: thptqg_form
             requested_slot: evidence_url
+  ielts_evidence_url:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: thptqg_form
+            requested_slot: ielts_evidence_url
   confirm_registration:
     type: text
     influence_conversation: false
@@ -154,6 +164,14 @@ slots:
             requested_slot: confirm_registration
           - active_loop: thptqg_form
             requested_slot: confirm_registration
+  has_ielts:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: thptqg_form
+            requested_slot: has_ielts
   retry_count:
     type: any
     influence_conversation: false
@@ -204,6 +222,9 @@ forms:
       - thptqg_block
       - thptqg_score
       - evidence_url
+      - has_ielts
+      - ielts_score
+      - ielts_evidence_url
       - confirm_registration
 
 responses:
@@ -237,6 +258,13 @@ responses:
     - text: "Tổng điểm thi HSA (ĐGNL) của bạn là bao nhiêu?:"
   utter_ask_ielts_score:
     - text: "Điểm chứng chỉ IELTS của bạn là bao nhiêu?:"
+  utter_ask_has_ielts:
+    - text: "Bạn có chứng chỉ IELTS Academic từ 5.5 trở lên không?"
+      buttons:
+        - title: "Có"
+          payload: "Có"
+        - title: "Không"
+          payload: "Không"
   utter_ask_math_score:
     - text: "Điểm môn Toán học bạ/thi THPT kết hợp của bạn là bao nhiêu?:"
   utter_ask_award_name:
@@ -256,6 +284,8 @@ responses:
     - text: "Tổng điểm tổ hợp 3 môn thi THPTQG của bạn là bao nhiêu (Thang điểm 30)?"
   utter_ask_evidence_url:
     - text: "Vui lòng dán link (URL) ảnh chụp minh chứng học bạ hoặc điểm thi đã upload lên Cloud của bạn tại đây:"
+  utter_ask_ielts_evidence_url:
+    - text: "Vui lòng dán link (URL) ảnh chụp hoặc scan chứng chỉ IELTS đã upload lên Cloud của bạn tại đây:"
 
   utter_tuition_info:
     - text: "Học phí tại UET năm học 2025-2026 dao động từ 34 - 40 triệu đồng/năm. Bạn có muốn đăng ký xét tuyển trực tuyến không?"

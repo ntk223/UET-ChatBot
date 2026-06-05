@@ -9,7 +9,11 @@ export default function FlowchartVisualizer({ slots, currentFlow, nextSlotToColl
       { key: "chosen_major", label: "Ngành đăng ký", desc: "Mã ngành tuyển sinh chính thức" },
       { key: "thptqg_block", label: "Khối xét tuyển", desc: "Tổ hợp xét tuyển (A00, A01...)" },
       { key: "thptqg_score", label: "Điểm thi THPTQG", desc: "Điểm số quy đổi từ tổ hợp" },
-      { key: "evidence_url", label: "Minh chứng điểm", desc: "Link ảnh/file bảng điểm thi" },
+      { key: "has_ielts", label: "Chứng chỉ IELTS", desc: "Có chứng chỉ IELTS để cộng điểm?" },
+      ...(slots.has_ielts === "Có" ? [
+        { key: "ielts_score", label: "Điểm số IELTS", desc: "Điểm IELTS để tính điểm cộng" }
+      ] : []),
+      { key: "evidence_url", label: "Minh chứng điểm", desc: "Link ảnh/file bảng điểm & IELTS" },
       { key: "confirm_registration", label: "Xác nhận hồ sơ", desc: "Duyệt lại toàn bộ thông tin đăng ký" },
     ],
     HSA: [
