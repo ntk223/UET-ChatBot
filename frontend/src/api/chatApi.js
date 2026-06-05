@@ -18,7 +18,7 @@ function toWebhookResponse(rasaMessages) {
 }
 
 async function restartConversation(senderId) {
-  await fetch(`${API_BASE_URL}${TRACKER_PATH}/${encodeURIComponent(senderId)}/tracker/events`, {
+  await fetch(`${API_BASE_URL}${TRACKER_PATH}/${senderId}/tracker/events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -81,7 +81,7 @@ export async function fetchChatHistory({ senderId }) {
   }
 
   const response = await fetch(
-    `${API_BASE_URL}${TRACKER_PATH}/${encodeURIComponent(senderId)}/tracker`
+    `${API_BASE_URL}${TRACKER_PATH}/${senderId}/tracker`
   );
 
   const data = await response.json().catch(() => ({}));

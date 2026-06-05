@@ -235,6 +235,8 @@ export function useChat() {
 
   const newChat = useCallback(() => {
     const newId = `user-${Math.floor(Math.random() * 1000000)}`;
+    const currentActiveId = getSenderId();
+
     setSenderId(newId);
     setMessages([]);
     setSlots(INITIAL_SLOTS);
@@ -244,7 +246,7 @@ export function useChat() {
 
     // If using Rasa, send /restart event to clear server side tracker
     if (chatEngine === "rasa") {
-      fetch(`http://localhost:5005/conversations/${encodeURIComponent(newId)}/tracker/events`, {
+      fetch(`http://localhost:5005/conversations/${currentActiveId}/tracker/events`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event: "restart" })
@@ -262,7 +264,7 @@ export function useChat() {
       thinking: "Khởi chạy Agent tuyển sinh UET. Chào mừng người dùng và hiển thị lựa chọn hướng đi ban đầu.",
     });
     setMessages([botMsg]);
-  }, [chatEngine]);
+  }, [chatEngine, getSenderId]);
 
   const startChat = useCallback(() => {
     newChat();
@@ -473,6 +475,8 @@ export function useChat() {
         // Not an interruption: parse and store the expected slot
         thinkingLines.push(`- Xử lý giá trị cho slot đang yêu cầu: [${tempNextSlot}]`);
         let valAccepted = false;
+        let failMsg = "";
+        let failThink = "";
 
         if (tempNextSlot === "fullname") {
           // Accept anything that isn't a command
@@ -481,6 +485,9 @@ export function useChat() {
             tempSlots.fullname = cleanName;
             valAccepted = true;
             thinkingLines.push(`  + Chấp nhận fullname = "${cleanName}"`);
+          } else {
+            failMsg = "⚠️ Họ và tên phải có ít nhất 2 từ (họ và tên). Ví dụ: **Nguyễn Văn An**. Vui lòng nhập lại:";
+            failThink = "Họ tên quá ngắn hoặc không đúng định dạng. Yêu cầu nhập lại.";
           }
         } else if (tempNextSlot === "phone_number") {
           const matchedPhone = text.match(/\b(0[35789]\d{8})\b/);
@@ -489,8 +496,8 @@ export function useChat() {
             valAccepted = true;
             thinkingLines.push(`  + Chấp nhận phone_number = "${matchedPhone[1]}"`);
           } else {
-            responseText = "Số điện thoại chưa hợp lệ. Vui lòng nhập số điện thoại Việt Nam gồm 10 chữ số (bắt đầu bằng số 0):";
-            return { text: responseText, thinking: "Nhập số điện thoại không đúng định dạng. Yêu cầu nhập lại." };
+            failMsg = "⚠️ Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam gồm **10 chữ số**, bắt đầu bằng **0**. Ví dụ: **0912345678**";
+            failThink = "Nhập số điện thoại không đúng định dạng. Yêu cầu nhập lại.";
           }
         } else if (tempNextSlot === "chosen_major") {
           if (matchedMajor) {
@@ -511,9 +518,9 @@ export function useChat() {
               valAccepted = true;
               thinkingLines.push(`  + Chấp nhận chosen_major (qua mã ngành) = "${codes[codeKey]}"`);
             } else {
-              responseText = "Mã ngành hoặc tên ngành chưa chính xác. Vui lòng chọn một trong các ngành bên dưới:";
+              failMsg = "⚠️ Ngành học không hợp lệ. Vui lòng nhập **mã ngành** (VD: CN1, CN8, CN12) hoặc **tên ngành đầy đủ** (VD: Khoa học máy tính, Trí tuệ nhân tạo).";
+              failThink = "Chọn ngành không khớp CSDL. Hiển thị lại nút bấm chọn ngành.";
               responseButtons = majorButtons;
-              return { text: responseText, buttons: responseButtons, thinking: "Chọn ngành không khớp CSDL. Hiển thị lại nút bấm chọn ngành." };
             }
           }
         } else if (tempNextSlot === "thptqg_block") {
@@ -523,9 +530,9 @@ export function useChat() {
             valAccepted = true;
             thinkingLines.push(`  + Chấp nhận thptqg_block = "${upper}"`);
           } else {
-            responseText = "Tổ hợp thi chưa đúng. Vui lòng chọn một trong các tổ hợp phổ biến dưới đây:";
+            failMsg = "⚠️ Tổ hợp xét tuyển không hợp lệ. Vui lòng chọn tổ hợp hợp lệ của UET: **A00, A01, A02, D01, D07, X06**:";
+            failThink = "Tổ hợp thi không đúng. Yêu cầu chọn tổ hợp hợp lệ.";
             responseButtons = blockButtons;
-            return { text: responseText, buttons: responseButtons, thinking: "Tổ hợp thi không đúng. Yêu cầu chọn tổ hợp hợp lệ." };
           }
         } else if (tempNextSlot === "thptqg_score") {
           const scMatch = text.match(/\b(\d+(\.\d+)?)\b/);
@@ -538,8 +545,8 @@ export function useChat() {
             }
           }
           if (!valAccepted) {
-            responseText = "Điểm thi THPTQG không hợp lệ. Vui lòng nhập điểm số trong thang điểm 30 (ví dụ: 26.50):";
-            return { text: responseText, thinking: "Điểm thi THPTQG sai định dạng hoặc ngoài phạm vi [0-30]. Yêu cầu nhập lại." };
+            failMsg = "⚠️ Tổng điểm nằm ngoài thang điểm 30. Vui lòng nhập tổng điểm 3 môn trong khoảng **0 – 30**:";
+            failThink = "Điểm thi THPTQG sai định dạng hoặc ngoài phạm vi [0-30]. Yêu cầu nhập lại.";
           }
         } else if (tempNextSlot === "evidence_url") {
           if (text.includes(".") && text.length > 5) {
@@ -547,14 +554,17 @@ export function useChat() {
             valAccepted = true;
             thinkingLines.push(`  + Chấp nhận evidence_url = "${text}"`);
           } else {
-            responseText = "Đường dẫn không hợp lệ. Vui lòng dán link URL minh chứng (ví dụ: https://drive.google.com/image.png):";
-            return { text: responseText, thinking: "Đường dẫn minh chứng không hợp lệ. Yêu cầu nhập lại URL." };
+            failMsg = "⚠️ Đường link minh chứng không hợp lệ. Vui lòng dán **URL đầy đủ** bắt đầu bằng **https://** hoặc **http://**.";
+            failThink = "Đường dẫn minh chứng không hợp lệ. Yêu cầu nhập lại URL.";
           }
         } else if (tempNextSlot === "hsa_id") {
           if (text.length >= 3) {
             tempSlots.hsa_id = text;
             valAccepted = true;
             thinkingLines.push(`  + Chấp nhận hsa_id = "${text}"`);
+          } else {
+            failMsg = "⚠️ Mã số báo danh HSA không hợp lệ. Định dạng đúng là **HSA-XXXXX** (VD: HSA-12345).";
+            failThink = "Mã HSA không hợp lệ. Yêu cầu nhập lại.";
           }
         } else if (tempNextSlot === "hsa_score") {
           const scMatch = text.match(/\b(\d+)\b/);
@@ -567,8 +577,8 @@ export function useChat() {
             }
           }
           if (!valAccepted) {
-            responseText = "Điểm thi HSA không hợp lệ. Vui lòng nhập điểm số trong khoảng từ 0 đến 150:";
-            return { text: responseText, thinking: "Điểm HSA không hợp lệ. Yêu cầu nhập lại." };
+            failMsg = "⚠️ Điểm HSA nằm ngoài khoảng hợp lệ (0 – 150). Vui lòng nhập lại:";
+            failThink = "Điểm HSA không hợp lệ. Yêu cầu nhập lại.";
           }
         } else if (tempNextSlot === "ielts_score") {
           const scMatch = text.match(/\b(\d+(\.\d+)?)\b/);
@@ -581,8 +591,8 @@ export function useChat() {
             }
           }
           if (!valAccepted) {
-            responseText = "Điểm IELTS không hợp lệ. Vui lòng nhập điểm trong thang 9.0 (ví dụ: 7.0):";
-            return { text: responseText, thinking: "Điểm IELTS ngoài phạm vi [1.0-9.0]. Yêu cầu nhập lại." };
+            failMsg = "⚠️ Điểm IELTS không hợp lệ. Vui lòng nhập điểm từ **0.0 đến 9.0** (bước 0.5):";
+            failThink = "Điểm IELTS ngoài phạm vi [1.0-9.0]. Yêu cầu nhập lại.";
           }
         } else if (tempNextSlot === "math_score") {
           const scMatch = text.match(/\b(\d+(\.\d+)?)\b/);
@@ -595,95 +605,141 @@ export function useChat() {
             }
           }
           if (!valAccepted) {
-            responseText = "Điểm Toán không hợp lệ. Vui lòng nhập điểm số trong thang điểm 10 (ví dụ: 8.75):";
-            return { text: responseText, thinking: "Điểm môn Toán không hợp lệ. Yêu cầu nhập lại." };
+            failMsg = "⚠️ Điểm môn Toán nằm ngoài thang điểm 10. Vui lòng nhập lại:";
+            failThink = "Điểm môn Toán không hợp lệ. Yêu cầu nhập lại.";
           }
         } else if (tempNextSlot === "award_name") {
           if (text.length > 3) {
             tempSlots.award_name = text;
             valAccepted = true;
             thinkingLines.push(`  + Chấp nhận award_name = "${text}"`);
+          } else {
+            failMsg = "⚠️ Tên giải thưởng quá ngắn. Vui lòng ghi rõ tên giải thưởng đầy đủ. Ví dụ: **Giải Nhất Tin học Quốc gia**.";
+            failThink = "Tên giải thưởng quá ngắn. Yêu cầu nhập lại.";
           }
         }
 
-        // Now evaluate what is the NEXT unfilled slot in the active flow
-        const flowSlots = {
-          THPTQG: ["fullname", "phone_number", "chosen_major", "thptqg_block", "thptqg_score", "evidence_url"],
-          HSA: ["fullname", "phone_number", "chosen_major", "hsa_id", "hsa_score"],
-          IELTS: ["fullname", "phone_number", "chosen_major", "ielts_score", "math_score"],
-          TUYEN_THANG: ["fullname", "phone_number", "chosen_major", "award_name"],
-        };
-
-        const activeSlots = flowSlots[tempFlow] || [];
-        const nextUnfilled = activeSlots.find((s) => tempSlots[s] === null);
-
-        if (nextUnfilled) {
-          tempNextSlot = nextUnfilled;
-          thinkingLines.push(`- Cập nhật slot tiếp theo cần thu thập: ${tempNextSlot}`);
-          responseText = getSlotQuestion(tempNextSlot);
-
-          if (tempNextSlot === "chosen_major") responseButtons = majorButtons;
-          if (tempNextSlot === "thptqg_block") responseButtons = blockButtons;
-        } else {
-          // ALL SLOTS FILLED! CALL ACTION (Rule 4: Định dạng Output cuối cùng)
-          const actionName = `action_submit_${tempFlow.toLowerCase()}_form`;
-          thinkingLines.push(`- TẤT CẢ CÁC SLOT ĐÃ ĐẦY. Kích hoạt kết quả cuối cùng.`);
-          thinkingLines.push(`- Gọi hàm Backend: ${actionName}`);
-
-          const summaryData = {};
-          activeSlots.forEach((s) => {
-            summaryData[s] = tempSlots[s];
-          });
-
-          // Compute benchmark matching for friendly info
-          let benchmarkMsg = "";
-          const benchmarks = {
-            "Khoa học máy tính (CN1)": 27.25,
-            "Kỹ thuật phần mềm (CN2)": 26.85,
-            "Công nghệ thông tin (CN4)": 26.50,
-            "An toàn thông tin (CN11)": 26.10,
-          };
-          const majorName = tempSlots.chosen_major;
-          const userScore = parseFloat(tempSlots.thptqg_score || tempSlots.hsa_score || 0);
-
-          if (tempFlow === "THPTQG" && benchmarks[majorName]) {
-            const cut = benchmarks[majorName];
-            if (userScore >= cut) {
-              benchmarkMsg = `\n\n🎉 Đánh giá nhanh: Điểm của bạn (${userScore}) ĐẠT trên mức điểm chuẩn năm 2025 (${cut}). Cơ hội đỗ của bạn rất cao!`;
-            } else {
-              benchmarkMsg = `\n\n⚖️ Đánh giá nhanh: Điểm của bạn (${userScore}) dưới mức điểm chuẩn năm 2025 (${cut}). Ban tuyển sinh sẽ tư vấn thêm phương án dự phòng cho bạn.`;
-            }
+        if (valAccepted) {
+          if (tempSlots.retry_count && tempSlots.retry_count[tempNextSlot]) {
+            tempSlots.retry_count[tempNextSlot] = 0;
           }
 
-          responseText = `Cảm ơn bạn **${tempSlots.fullname}**! Hồ sơ xét tuyển theo phương thức **${tempFlow}** của bạn đã được lưu nhận thành công vào hệ thống.${benchmarkMsg}\n\nMã hồ sơ của bạn là **#UET-${Math.floor(100000 + Math.random() * 900000)}**.\n\nThông tin chi tiết đã gửi:\n- Số điện thoại: ${tempSlots.phone_number}\n- Ngành đăng ký: ${tempSlots.chosen_major}\n` +
-            activeSlots
-              .slice(3)
-              .map((s) => `- ${getSlotLabel(s)}: ${tempSlots[s]}`)
-              .join("\n") +
-            `\n\n[CALL_ACTION: ${actionName}]\n` +
-            JSON.stringify(summaryData, null, 2);
-
-          callAction = {
-            action: actionName,
-            data: summaryData,
+          // Now evaluate what is the NEXT unfilled slot in the active flow
+          const flowSlots = {
+            THPTQG: ["fullname", "phone_number", "chosen_major", "thptqg_block", "thptqg_score", "evidence_url"],
+            HSA: ["fullname", "phone_number", "chosen_major", "hsa_id", "hsa_score"],
+            IELTS: ["fullname", "phone_number", "chosen_major", "ielts_score", "math_score"],
+            TUYEN_THANG: ["fullname", "phone_number", "chosen_major", "award_name"],
           };
 
-          // Save to Mock DB Submissions
-          const newSubmission = {
-            id: `UET-${Math.floor(100000 + Math.random() * 900000)}`,
-            fullname: tempSlots.fullname,
-            phone_number: tempSlots.phone_number,
-            chosen_major: tempSlots.chosen_major,
-            admission_method: tempFlow,
-            details: summaryData,
-            created_at: new Date().toLocaleString("vi-VN"),
-          };
-          setSubmissions((prev) => [newSubmission, ...prev]);
+          const activeSlots = flowSlots[tempFlow] || [];
+          const nextUnfilled = activeSlots.find((s) => tempSlots[s] === null);
 
-          // Clear states
-          tempFlow = null;
-          tempNextSlot = null;
-          tempSlots = INITIAL_SLOTS;
+          if (nextUnfilled) {
+            tempNextSlot = nextUnfilled;
+            thinkingLines.push(`- Cập nhật slot tiếp theo cần thu thập: ${tempNextSlot}`);
+            responseText = getSlotQuestion(tempNextSlot);
+
+            if (tempNextSlot === "chosen_major") responseButtons = majorButtons;
+            if (tempNextSlot === "thptqg_block") responseButtons = blockButtons;
+          } else {
+            // ALL SLOTS FILLED! CALL ACTION (Rule 4: Định dạng Output cuối cùng)
+            const actionName = `action_submit_${tempFlow.toLowerCase()}_form`;
+            thinkingLines.push(`- TẤT CẢ CÁC SLOT ĐÃ ĐẦY. Kích hoạt kết quả cuối cùng.`);
+            thinkingLines.push(`- Gọi hàm Backend: ${actionName}`);
+
+            const summaryData = {};
+            activeSlots.forEach((s) => {
+              summaryData[s] = tempSlots[s];
+            });
+
+            // Compute benchmark matching for friendly info
+            let benchmarkMsg = "";
+            const benchmarks = {
+              "Khoa học máy tính (CN1)": 27.25,
+              "Kỹ thuật phần mềm (CN2)": 26.85,
+              "Công nghệ thông tin (CN4)": 26.50,
+              "An toàn thông tin (CN11)": 26.10,
+            };
+            const majorName = tempSlots.chosen_major;
+            const userScore = parseFloat(tempSlots.thptqg_score || tempSlots.hsa_score || 0);
+
+            if (tempFlow === "THPTQG" && benchmarks[majorName]) {
+              const cut = benchmarks[majorName];
+              if (userScore >= cut) {
+                benchmarkMsg = `\n\n🎉 Đánh giá nhanh: Điểm của bạn (\${userScore}) ĐẠT trên mức điểm chuẩn năm 2025 (\${cut}). Cơ hội đỗ của bạn rất cao!`;
+              } else {
+                benchmarkMsg = `\n\n⚖️ Đánh giá nhanh: Điểm của bạn (\${userScore}) dưới mức điểm chuẩn năm 2025 (\${cut}). Ban tuyển sinh sẽ tư vấn thêm phương án dự phòng cho bạn.`;
+              }
+            }
+
+            responseText = `Cảm ơn bạn **\${tempSlots.fullname}**! Hồ sơ xét tuyển theo phương thức **\${tempFlow}** của bạn đã được lưu nhận thành công vào hệ thống.\${benchmarkMsg}\n\nMã hồ sơ của bạn là **#UET-\${Math.floor(100000 + Math.random() * 900000)}**.\n\nThông tin chi tiết đã gửi:\n- Số điện thoại: \${tempSlots.phone_number}\n- Ngành đăng ký: \${tempSlots.chosen_major}\n` +
+              activeSlots
+                .slice(3)
+                .map((s) => `- \${getSlotLabel(s)}: \${tempSlots[s]}`)
+                .join("\n") +
+              `\n\n[CALL_ACTION: \${actionName}]\n` +
+              JSON.stringify(summaryData, null, 2);
+
+            callAction = {
+              action: actionName,
+              data: summaryData,
+            };
+
+            // Save to Mock DB Submissions
+            const newSubmission = {
+              id: `UET-\${Math.floor(100000 + Math.random() * 900000)}`,
+              fullname: tempSlots.fullname,
+              phone_number: tempSlots.phone_number,
+              chosen_major: tempSlots.chosen_major,
+              admission_method: tempFlow,
+              details: summaryData,
+              created_at: new Date().toLocaleString("vi-VN"),
+            };
+            setSubmissions((prev) => [newSubmission, ...prev]);
+
+            // Clear states
+            tempFlow = null;
+            tempNextSlot = null;
+            tempSlots = INITIAL_SLOTS;
+          }
+        } else {
+          // Increment retry count
+          tempSlots.retry_count = tempSlots.retry_count || {};
+          const currentRetry = (tempSlots.retry_count[tempNextSlot] || 0) + 1;
+          tempSlots.retry_count[tempNextSlot] = currentRetry;
+
+          if (currentRetry >= 3) {
+            // Trigger support flow
+            setSlots(INITIAL_SLOTS);
+            setCurrentFlow(null);
+            setNextSlotToCollect(null);
+            return {
+              text: "⚠️ **Nhập sai quá 3 lần liên tiếp**\n\nHệ thống nhận thấy bạn đang gặp khó khăn khi điền hồ sơ. Bạn có thể kết nối với Fanpage Tuyển sinh của trường hoặc gặp tư vấn viên trực tiếp để được hỗ trợ.",
+              buttons: [
+                { title: "💬 Fanpage Tuyển sinh", url: "https://www.facebook.com/kcn.uet.vnu" },
+                { title: "🧑‍💼 Gặp tư vấn viên", payload: "/gap_tu_van_vien" },
+                { title: "🔄 Đăng ký lại từ đầu", payload: "dang_ky_nguyen_vong" }
+              ],
+              thinking: `Người dùng đã nhập sai 3 lần ở trường \${tempNextSlot}. Tự động chuyển hướng hỗ trợ.`,
+            };
+          } else {
+            if (!failMsg) {
+              if (tempNextSlot === "fullname") {
+                failMsg = "Họ và tên phải có ít nhất 2 từ (họ và tên). Ví dụ: Nguyễn Văn An. Vui lòng nhập lại:";
+                failThink = "Họ tên quá ngắn hoặc không đúng định dạng. Yêu cầu nhập lại.";
+              } else {
+                failMsg = `Thông tin nhập cho \${getSlotLabel(tempNextSlot).toLowerCase()} chưa đúng định dạng. Vui lòng nhập lại:`;
+                failThink = "Nhập sai định dạng.";
+              }
+            }
+            setSlots(tempSlots);
+            return {
+              text: failMsg,
+              buttons: responseButtons,
+              thinking: failThink + ` (Lần nhập sai thứ \${currentRetry}/3)`
+            };
+          }
         }
       }
     } else {
@@ -925,7 +981,7 @@ export function useChat() {
 
     // Sync slots by calling Rasa tracker endpoint
     try {
-      const trackerResp = await fetch(`http://localhost:5005/conversations/${encodeURIComponent(senderId)}/tracker`);
+      const trackerResp = await fetch(`http://localhost:5005/conversations/${senderId}/tracker`);
       if (trackerResp.ok) {
         const tracker = await trackerResp.json();
         const trackerSlots = tracker?.slots || {};

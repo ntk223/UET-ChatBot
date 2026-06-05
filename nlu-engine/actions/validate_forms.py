@@ -7,11 +7,104 @@ khi lưu slot. Nếu trả về None → giữ slot chưa điền → Rasa hỏi
 """
 
 import re
-from typing import Any, Text, Dict, Optional
+from typing import Any, Text, Dict, Optional, List
 from rasa_sdk import Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.forms import FormValidationAction
 from rasa_sdk.types import DomainDict
+from rasa_sdk.events import SlotSet, ActiveLoop
+
+class SmartValidationMixin:
+    async def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> List[Any]:
+        # Extract events as usual
+        extraction_events = await self.get_extraction_events(
+            dispatcher, tracker, domain
+        )
+        tracker.add_slots(extraction_events)
+
+        validation_events = await self._extract_validation_events(
+            dispatcher, tracker, domain
+        )
+
+        # Get retry_count from slot (dictionary of slot_name -> count)
+        retry_count = tracker.get_slot("retry_count")
+        if not isinstance(retry_count, dict):
+            retry_count = {}
+        else:
+            # copy to avoid mutating tracker directly in unsafe ways
+            retry_count = dict(retry_count)
+
+        # Slots we want to track retries for
+        important_slots = {
+            "fullname", "phone_number", "chosen_major", "hsa_id", 
+            "hsa_score", "ielts_score", "math_score", "award_name", 
+            "thptqg_block", "thptqg_score", "evidence_url"
+        }
+
+        failed_slots = []
+        successful_slots = []
+
+        # Intercept validation events
+        for event in validation_events:
+            if isinstance(event, dict) and event.get("event") == "slot":
+                slot_name = event.get("name")
+                slot_value = event.get("value")
+                if slot_name in important_slots:
+                    if slot_value is None:
+                        failed_slots.append(slot_name)
+                    else:
+                        successful_slots.append(slot_name)
+
+        trigger_support_flow = False
+        for slot_name in failed_slots:
+            retry_count[slot_name] = retry_count.get(slot_name, 0) + 1
+            if retry_count[slot_name] >= 3:
+                trigger_support_flow = True
+                break
+
+        if trigger_support_flow:
+            dispatcher.utter_message(
+                text="⚠️ **Nhập sai quá 3 lần liên tiếp**\n"
+                     "Hệ thống nhận thấy bạn đang gặp khó khăn khi điền hồ sơ. "
+                     "Bạn có thể kết nối với Fanpage Tuyển sinh của trường hoặc gặp tư vấn viên trực tiếp để được hỗ trợ.",
+                buttons=[
+                    {"title": "💬 Fanpage Tuyển sinh", "url": "https://www.facebook.com/kcn.uet.vnu"},
+                    {"title": "🧑‍💼 Gặp tư vấn viên", "payload": "/gap_tu_van_vien"},
+                    {"title": "🔄 Đăng ký lại từ đầu", "payload": "/dang_ky_nguyen_vong"}
+                ]
+            )
+            # Deactivate active loop and reset form slots and retry_count
+            reset_events = [ActiveLoop(None), SlotSet("retry_count", {})]
+            slots_to_reset = [
+                "fullname", "phone_number", "chosen_major", "hsa_id", 
+                "hsa_score", "ielts_score", "math_score", "award_name", 
+                "thptqg_block", "thptqg_score", "evidence_url", "confirm_registration"
+            ]
+            for s in slots_to_reset:
+                reset_events.append(SlotSet(s, None))
+            return reset_events
+
+        # Reset retry count for successfully validated slots
+        for slot_name in successful_slots:
+            if slot_name in retry_count:
+                retry_count[slot_name] = 0
+
+        # Sync retry_count back to validation_events
+        has_retry_event = False
+        for i, event in enumerate(validation_events):
+            if isinstance(event, dict) and event.get("name") == "retry_count":
+                validation_events[i] = SlotSet("retry_count", retry_count)
+                has_retry_event = True
+                break
+        if not has_retry_event:
+            validation_events.append(SlotSet("retry_count", retry_count))
+
+        return validation_events
 
 
 # ─────────────────────────────────────────────
@@ -155,7 +248,7 @@ def _validate_confirm_registration(
 #  VALIDATE FORM: HSA
 # ═══════════════════════════════════════════════════════════════
 
-class ValidateHsaForm(FormValidationAction):
+class ValidateHsaForm(SmartValidationMixin, FormValidationAction):
     def name(self) -> Text:
         return "validate_hsa_form"
 
@@ -240,7 +333,7 @@ class ValidateHsaForm(FormValidationAction):
 #  VALIDATE FORM: IELTS
 # ═══════════════════════════════════════════════════════════════
 
-class ValidateIeltsForm(FormValidationAction):
+class ValidateIeltsForm(SmartValidationMixin, FormValidationAction):
     def name(self) -> Text:
         return "validate_ielts_form"
 
@@ -338,7 +431,7 @@ class ValidateIeltsForm(FormValidationAction):
 #  VALIDATE FORM: TUYỂN THẲNG (direct)
 # ═══════════════════════════════════════════════════════════════
 
-class ValidateDirectForm(FormValidationAction):
+class ValidateDirectForm(SmartValidationMixin, FormValidationAction):
     def name(self) -> Text:
         return "validate_direct_form"
 
@@ -406,7 +499,7 @@ class ValidateDirectForm(FormValidationAction):
 #  VALIDATE FORM: THPTQG
 # ═══════════════════════════════════════════════════════════════
 
-class ValidateThptqgForm(FormValidationAction):
+class ValidateThptqgForm(SmartValidationMixin, FormValidationAction):
     def name(self) -> Text:
         return "validate_thptqg_form"
 

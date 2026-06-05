@@ -14,7 +14,13 @@ export default function ReplyButtons({ buttons, onReply, disabled }) {
             key={`${button.title}-${index}`}
             className="reply-button flex-align"
             type="button"
-            onClick={() => onReply?.(button)}
+            onClick={() => {
+              if (button.url) {
+                window.open(button.url, "_blank");
+              } else {
+                onReply?.(button);
+              }
+            }}
             disabled={disabled}
           >
             {Icon && <Icon size={14} />}

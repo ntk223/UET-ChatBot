@@ -154,6 +154,11 @@ slots:
             requested_slot: confirm_registration
           - active_loop: thptqg_form
             requested_slot: confirm_registration
+  retry_count:
+    type: any
+    influence_conversation: false
+    mappings:
+      - type: custom
 
 forms:
   hsa_form:
