@@ -3,6 +3,11 @@ version: "3.1"
 nlu:
   - intent: chon_ptxt_hsa
     examples: |
+      - em muon xet bang diem danh gia nag luc
+      - xet tuyen bang phuong thuc HAS
+      - e thi DGNl roi muon xet tuyen
+      - thi dgnl vnu lay bn thi do
+      - em co diem has roi muon nop don
       - Em muốn xét bằng điểm Đánh giá năng lực
       - em muon xet bang diem danh gia nang luc
       - Xét tuyển bằng phương thức HSA
@@ -40,6 +45,11 @@ nlu:
 
   - intent: chon_ptxt_ielts
     examples: |
+      - xt bang chưng chi tieng anh
+      - e muon xet bang chung chi ilets
+      - e co ccnn ilets muon xt vao uet
+      - em co bằg ielt 6.0 co dc xet k ad
+      - dung bang tofel ibt xet tuyen ntn
       - Xét tuyển kết hợp chứng chỉ tiếng Anh quốc tế
       - xet tuyen ket hop chung chi tieng anh quoc te
       - Em có bằng IELTS muốn xét tuyển
@@ -73,6 +83,11 @@ nlu:
 
   - intent: chon_ptxt_tuyen_thang
     examples: |
+      - em doat giai quoc gai co duoc tuyen thag khong
+      - dien tuyen thag hoc sinh gioi
+      - tuyen thag theo quy che bo gd
+      - e co giai hsg cap tinh co dc xt thag k
+      - tt theo diên hsg quoc gia
       - Diện tuyển thẳng giải quốc gia
       - dien tuyen thang giai quoc gia
       - Đăng ký tuyển thẳng
@@ -107,6 +122,11 @@ nlu:
 
   - intent: chon_ptxt_thptqg
     examples: |
+      - e muon xet bang diem thi THPT quoc gai
+      - xet diem thi tot nghip thpt
+      - em muon dung diem thi tot nghiep thtp
+      - dung diem thi dai hoc 2026 de dky
+      - e thi thptqg dc 26 diem co nop dc ko
       - Em muốn xét bằng điểm thi THPT Quốc gia
       - em muon xet bang diem thi THPT Quoc gia
       - Xét điểm tốt nghiệp THPT theo tổ hợp môn

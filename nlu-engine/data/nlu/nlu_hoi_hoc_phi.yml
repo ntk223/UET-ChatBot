@@ -3,12 +3,13 @@ version: "3.1"
 nlu:
   - intent: hoi_hoc_phi
     examples: |
-      - Học phí ngành [CNTT](nganh_hoc) là bao nhiêu?
-      - Hoc phi nganh CNTT la bao nhieu
+      - cho em hoi hoc phi truong minh co đăt khong
+      - truong minh mot nam dong bao nhieu tien hco phi
+      - uet hoc phi nam nay co tnag khong a
+      - moi tin chi cua truong khoang bn xien
+      - e muon hoi ve ho cphi uet
       - Trường mình một năm đóng bao nhiêu tiền học phí?
       - truong minh mot nam dong bao nhieu tien hoc phi
-      - Học phí [Khoa học máy tính](nganh_hoc) có đắt không?
-      - Hoc phi khmt co dat khong
       - học phí bao nhiêu
       - hoc phi bao nhieu
       - đóng bao nhiêu tiền
@@ -19,22 +20,16 @@ nlu:
       - chi phi hoc tap mot nam la bao nhieu
       - mỗi tín chỉ UET giá bao nhiêu?
       - moi tin chi UET gia bao nhieu
-      - học phí ngành [Trí tuệ nhân tạo](nganh_hoc) có cao không?
-      - hoc phi nganh AI co cao khong
       - tiền học một học kỳ là bao nhiêu?
       - tien hoc mot hoc ky la bao nhieu
       - học phí đại học công nghệ là bao nhiêu?
       - hoc phi dai hoc cong nghe la bao nhieu
       - tôi cần biết mức học phí để chuẩn bị tài chính
       - toi can biet muc hoc phi de chuan bi tai chinh
-      - ngành [CN9](nganh_hoc) học phí là bao nhiêu vậy?
-      - hoc phi CN9 la bao nhieu
       - học UET tốn bao nhiêu tiền mỗi năm?
       - hoc uet ton bao nhieu tien moi nam
       - học phí chương trình chuẩn và chương trình tiên tiến khác nhau không?
       - hoc phi ct chuan va ct tien tien khac nhau khong
-      - học phí [Kỹ thuật phần mềm](nganh_hoc) năm 2026 là bao nhiêu?
-      - hoc phi ky thuat phan mem nam 2026 la bao nhieu
       - hp mỗi năm uet là bn
       - hp moi nam uet la bn
       - tốn kém bao nhiêu khi học uet
@@ -50,3 +45,15 @@ nlu:
       - cho e hỏi hp uet ạ
       - tiền học uet tầm bao nhiêu vậy ad
       - tien hoc uet tam bao nhieu vay ad
+      - cho em hỏi học phí trường mình với ạ
+      - cho em hoi hoc phi truong minh voi a
+      - học phí đóng theo kỳ hay theo năm vậy ad
+      - hoc phi dong theo ky hay theo nam vay ad
+      - mức học phí trung bình là bao nhiêu
+      - muc hoc phi trung binh la bao nhieu
+      - uet học phí năm nay có tăng không ạ
+      - uet hoc phi nam nay co tang khong a
+      - tiền học phí uet khoảng bao nhiêu
+      - tien hoc phi uet khoang bao nhieu
+      - e muốn hỏi về học phí uet
+      - e muon hoi ve hoc phi uet

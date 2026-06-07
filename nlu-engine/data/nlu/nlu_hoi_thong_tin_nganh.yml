@@ -3,6 +3,11 @@ version: "3.1"
 nlu:
   - intent: hoi_thong_tin_nganh
     examples: |
+      - tu van giup minh ngah [CNTT](nganh_hoc)
+      - nganh [cn2](nganh_hoc) co tot kogn
+      - cho e rv ngnah [cn1](nganh_hoc) voi
+      - [KHMT](nganh_hoc) uet hoc nhug gi
+      - co hoi viec lam cua [DTVT](nganh_hoc) ntn
       - Ngành [Khoa học máy tính](nganh_hoc) học những gì?
       - nganh khoa hoc may tinh hoc nhung gi
       - Tư vấn giúp mình ngành [Công nghệ thông tin](nganh_hoc)

@@ -3,6 +3,11 @@ version: "3.1"
 nlu:
   - intent: dang_ky_nguyen_vong
     examples: |
+      - dang ky nguyen vogn vao truong
+      - cho e đki xet tuyen truc tuyen
+      - lam sao de đăg ký nguyện vọng vào uet
+      - e muon nop hso tuyen sinh
+      - cach thuc đki nv1 vao truong
       - Tôi muốn đăng ký nguyện vọng vào trường
       - toi muon dang ky nguyen vong vao truong
       - Cho em đặt nguyện vọng với ad
