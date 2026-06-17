@@ -6,7 +6,7 @@ import os
 
 # Add actions to path so we can import db_helper
 sys.path.append(os.path.join(os.path.dirname(__file__), "actions"))
-from db_helper import register_user_db, login_user_db, get_candidate_aspirations, verify_candidate_profile, get_user_by_email
+from db_helper import register_user_db, login_user_db, get_candidate_aspirations, verify_candidate_profile, get_user_by_email, delete_candidate_profile
 
 app = Sanic("AuthServer")
 CORS(app)
@@ -85,6 +85,24 @@ async def verify(request):
         return json({"status": "success"})
     else:
         return json({"status": "error", "message": "Xác minh thất bại"}, status=500)
+
+@app.post("/api/cancel")
+async def cancel_aspiration(request):
+    data = request.json
+    candidate_id = data.get("candidate_id")
+    if not candidate_id:
+        return json({"status": "error", "message": "Thiếu mã hồ sơ"}, status=400)
+    
+    try:
+        db_id = int(str(candidate_id).replace("UET-", "").strip())
+    except ValueError:
+        return json({"status": "error", "message": "Mã hồ sơ không hợp lệ"}, status=400)
+        
+    success = delete_candidate_profile(db_id)
+    if success:
+        return json({"status": "success"})
+    else:
+        return json({"status": "error", "message": "Hủy nguyện vọng thất bại"}, status=500)
 
 @app.get("/api/aspirations")
 async def get_aspirations(request):

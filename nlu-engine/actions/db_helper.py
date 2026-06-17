@@ -465,6 +465,27 @@ def verify_candidate_profile(candidate_id):
         print(f"Error in verify_candidate_profile: {e}")
         return False
 
+def delete_candidate_profile(candidate_id):
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        
+        # Deleting from candidates table will cascade delete from sub-method tables due to ON DELETE CASCADE
+        cursor.execute(f"DELETE FROM candidates WHERE id = {placeholder}", (candidate_id,))
+        conn.commit()
+        
+        # Verify it actually deleted
+        cursor.execute(f"SELECT COUNT(*) FROM candidates WHERE id = {placeholder}", (candidate_id,))
+        deleted = cursor.fetchone()[0] == 0
+        
+        cursor.close()
+        conn.close()
+        return deleted
+    except Exception as e:
+        print(f"Error in delete_candidate_profile: {e}")
+        return False
+
 def save_support_request(sender_id, issue_description):
     try:
         conn, conn_type = get_db_connection()

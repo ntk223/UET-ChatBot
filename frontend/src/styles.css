@@ -1962,6 +1962,28 @@ body {
   transform: translateY(-1px);
 }
 
+.cancel-inline-btn {
+  border: 1px solid #fda4af;
+  background: #fff1f2;
+  color: #e11d48;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.cancel-inline-btn:hover {
+  background: #ffe4e6;
+  border-color: #f43f5e;
+  transform: translateY(-1px);
+}
+
 /* Right Column Tabs */
 .right-column-tabs-header {
   display: flex;

@@ -3,26 +3,14 @@ import "./styles.css";
 import ChatWindow from "./components/ChatWindow.jsx";
 import FlowchartVisualizer from "./components/FlowchartVisualizer.jsx";
 import StudentPortal from "./components/StudentPortal.jsx";
-import MockDatabaseView from "./components/MockDatabaseView.jsx";
 import AspirationsList from "./components/AspirationsList.jsx";
 import { useChat } from "./hooks/useChat.js";
 import {
-  Settings,
-  Database,
   Brain,
   Sparkles,
-  AlertCircle,
-  RefreshCw,
-  Save,
   CheckCircle2,
-  Trash2,
-  Key,
   BookOpen,
-  ChevronDown,
-  ChevronUp,
   User,
-  Check,
-  Zap,
 } from "lucide-react";
 
 export default function App() {
@@ -38,14 +26,6 @@ export default function App() {
     slots,
     currentFlow,
     nextSlotToCollect,
-    submissions,
-    clearSubmissions,
-    systemPrompt,
-    setSystemPrompt,
-    apiKey,
-    setApiKey,
-    chatEngine,
-    setChatEngine,
     getSlotLabel,
     loggedInCandidate,
     logoutCandidate,
@@ -55,53 +35,26 @@ export default function App() {
     loginUser,
     registerUser,
     verifyAspiration,
+    cancelAspiration,
   } = useChat();
 
-  const [promptInput, setPromptInput] = useState(systemPrompt);
-  const [showPromptSaveSuccess, setShowPromptSaveSuccess] = useState(false);
-  const [activePromptTab, setActivePromptTab] = useState("editor"); // 'editor' | 'kb' | 'settings'
-  const [showSubmissionCelebration, setShowSubmissionCelebration] = useState(false);
   const [rightColTab, setRightColTab] = useState("flowchart"); // 'flowchart' | 'aspirations'
   const [prevAspirationsCount, setPrevAspirationsCount] = useState(0);
+  const [showSubmissionCelebration, setShowSubmissionCelebration] = useState(false);
 
+  // Tự động chuyển tab khi có nguyện vọng mới
   useEffect(() => {
-    if (candidateAspirations.length > prevAspirationsCount) {
-      setRightColTab("aspirations");
+    if (candidateAspirations.length > prevAspirationsCount && prevAspirationsCount >= 0) {
+      if (candidateAspirations.length > 0) {
+        setShowSubmissionCelebration(true);
+        setTimeout(() => setShowSubmissionCelebration(false), 4000);
+        setRightColTab("aspirations");
+      }
     }
     setPrevAspirationsCount(candidateAspirations.length);
-  }, [candidateAspirations.length, prevAspirationsCount]);
+  }, [candidateAspirations.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync prompt editor when default is restored or loaded
-  useEffect(() => {
-    setPromptInput(systemPrompt);
-  }, [systemPrompt]);
-
-  // Monitor submission count to trigger a brief toast celebration
-  useEffect(() => {
-    if (submissions.length > 0) {
-      setShowSubmissionCelebration(true);
-      const timer = setTimeout(() => setShowSubmissionCelebration(false), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [submissions.length]);
-
-  const handleSavePrompt = () => {
-    setSystemPrompt(promptInput);
-    setShowPromptSaveSuccess(true);
-    setTimeout(() => setShowPromptSaveSuccess(false), 3000);
-  };
-
-  const handleRestoreDefaultPrompt = () => {
-    if (window.confirm("Bạn có chắc chắn muốn khôi phục system prompt về mặc định không?")) {
-      newChat();
-    }
-  };
-
-  // Quick tests for the slot filling mechanism
-  const triggerQuickTest = (text) => {
-    sendText(text);
-  };
-
+  // ── Màn hình đăng nhập ────────────────────────────────────────────────────
   if (!loggedInCandidate) {
     return (
       <div className="guest-mode">
@@ -127,6 +80,7 @@ export default function App() {
     );
   }
 
+  // ── Màn hình chính ────────────────────────────────────────────────────────
   return (
     <div className="app">
       <header className="hero">
@@ -154,8 +108,8 @@ export default function App() {
                   {loggedInCandidate.email}
                 </div>
               </div>
-              <button 
-                onClick={logoutCandidate} 
+              <button
+                onClick={logoutCandidate}
                 className="logout-btn"
                 style={{ marginLeft: '10px', padding: '6px 12px', fontSize: '11px' }}
               >
@@ -181,13 +135,13 @@ export default function App() {
           <CheckCircle2 size={18} className="text-green" />
           <div>
             <strong>Ghi nhận hồ sơ thành công!</strong>
-            <p>Ứng viên đã được lưu vào cơ sở dữ liệu.</p>
+            <p>Nguyện vọng đã được lưu vào cơ sở dữ liệu.</p>
           </div>
         </div>
       )}
 
       <main className="playground-grid">
-        {/* MIDDLE COLUMN: Active Chat Session */}
+        {/* MIDDLE COLUMN: Chat */}
         <section className="column middle-column">
           <ChatWindow
             messages={messages}
@@ -201,55 +155,9 @@ export default function App() {
             isSending={isSending}
             error={error}
           />
-
-          {/* Quick-test triggers for easier verification */}
-          {/* <div className="quick-test-section">
-            <h4 className="flex-align">
-              <Zap size={14} className="icon-blue" fill="currentColor" />
-              <span>Nút Thử Nghiệm Nhanh Nghiệp Vụ (Test Scenarios)</span>
-            </h4>
-            <div className="test-buttons-grid">
-              <button
-                className="test-btn"
-                onClick={() => triggerQuickTest("Mình muốn đăng ký nguyện vọng xét tuyển")}
-              >
-                1. Đăng ký nguyện vọng
-              </button>
-              <button
-                className="test-btn"
-                onClick={() => triggerQuickTest("Xét bằng phương thức THPTQG")}
-              >
-                2. Chọn THPTQG
-              </button>
-              <button
-                className="test-btn"
-                onClick={() => triggerQuickTest("Nguyễn Trung Kiên")}
-              >
-                3. Khai báo Họ Tên
-              </button>
-              <button
-                className="test-btn"
-                onClick={() => triggerQuickTest("0912345678")}
-              >
-                4. Khai báo SĐT
-              </button>
-              <button
-                className="test-btn"
-                onClick={() => triggerQuickTest("Học phí ngành CNTT CN4 là bao nhiêu?")}
-              >
-                ⚡ Hỏi xen ngang Học phí (Interruption)
-              </button>
-              <button
-                className="test-btn"
-                onClick={() => triggerQuickTest("https://drive.google.com/minhchung.png")}
-              >
-                5. Khai báo Minh chứng
-              </button>
-            </div>
-          </div> */}
         </section>
 
-        {/* RIGHT COLUMN: Chatbot Session Memory Slots & Database Submissions */}
+        {/* RIGHT COLUMN: Flowchart & Aspirations */}
         <section className="column right-column">
           <div className="right-column-tabs-header flex-align">
             <button
@@ -285,15 +193,10 @@ export default function App() {
               <AspirationsList
                 candidateAspirations={candidateAspirations}
                 verifyAspiration={verifyAspiration}
+                cancelAspiration={cancelAspiration}
               />
             )}
           </div>
-
-          <MockDatabaseView
-            submissions={submissions}
-            clearSubmissions={clearSubmissions}
-            getSlotLabel={getSlotLabel}
-          />
         </section>
       </main>
     </div>

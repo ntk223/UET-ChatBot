@@ -1,6 +1,6 @@
 import { CheckCircle2, ClipboardList } from "lucide-react";
 
-export default function AspirationsList({ candidateAspirations, verifyAspiration }) {
+export default function AspirationsList({ candidateAspirations, verifyAspiration, cancelAspiration }) {
   return (
     <div className="panel-card aspirations-card">
       <div className="panel-header-action">
@@ -48,15 +48,30 @@ export default function AspirationsList({ candidateAspirations, verifyAspiration
                   </div>
                 )}
               </div>
-              {!asp.is_verified && (
+              
+              <div className="asp-actions-row" style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                {!asp.is_verified && (
+                  <button
+                    onClick={() => verifyAspiration(asp.id)}
+                    className="verify-inline-btn"
+                    style={{ flex: 1, margin: 0 }}
+                  >
+                    <CheckCircle2 size={12} />
+                    <span>Xác minh</span>
+                  </button>
+                )}
                 <button
-                  onClick={() => verifyAspiration(asp.id)}
-                  className="verify-inline-btn"
+                  onClick={() => {
+                    if (window.confirm(`Bạn có chắc chắn muốn hủy nguyện vọng ${asp.chosen_major}?`)) {
+                      cancelAspiration(asp.id);
+                    }
+                  }}
+                  className="cancel-inline-btn"
+                  style={{ flex: 1 }}
                 >
-                  <CheckCircle2 size={12} />
-                  <span>Xác minh hồ sơ</span>
+                  <span>Hủy nguyện vọng</span>
                 </button>
-              )}
+              </div>
             </div>
           ))
         )}
