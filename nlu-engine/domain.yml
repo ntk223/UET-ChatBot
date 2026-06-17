@@ -246,21 +246,21 @@ responses:
   utter_greet:
     - text: "Xin chào! Mình là Chatbot tuyển sinh trường ĐH Công nghệ (UET). Bạn muốn tìm hiểu ngành học hay đăng ký nguyện vọng xét tuyển trực tuyến luôn?"
       buttons:
-        - title: "Tìm hiểu ngành học 📚"
+        - title: "📚 Tìm hiểu ngành học"
           payload: "Tư vấn giúp mình ngành học"
-        - title: "Đăng ký nguyện vọng 📝"
+        - title: "📝 Đăng ký nguyện vọng"
           payload: "/dang_ky_nguyen_vong"
 
   utter_ask_method:
     - text: "Vui lòng chọn một trong các phương thức xét tuyển dưới đây:"
       buttons:
-        - title: "Xét tuyển điểm thi THPTQG 📝"
+        - title: "📝 Xét tuyển điểm thi THPTQG"
           payload: "/chon_ptxt_thptqg"
-        - title: "Xét tuyển điểm HSA (ĐGNL) ⚡"
+        - title: "⚡ Xét tuyển điểm HSA (ĐGNL)"
           payload: "/chon_ptxt_hsa"
-        - title: "Xét tuyển kết hợp IELTS 🇬🇧"
+        - title: "🇬🇧 Xét tuyển kết hợp IELTS"
           payload: "/chon_ptxt_ielts"
-        - title: "Xét Tuyển thẳng 🥇"
+        - title: "🥇 Xét Tuyển thẳng"
           payload: "/chon_ptxt_tuyen_thang"
 
   utter_ask_fullname:
@@ -307,15 +307,15 @@ responses:
   utter_tuition_info:
     - text: "Học phí tại UET năm học 2025-2026 dao động từ 34 - 40 triệu đồng/năm. Bạn có muốn đăng ký xét tuyển trực tuyến không?"
       buttons:
-        - title: "Đăng ký nguyện vọng 📝"
+        - title: "📝 Đăng ký nguyện vọng"
           payload: "/dang_ky_nguyen_vong"
 
   utter_default:
     - text: "Xin lỗi, mình chưa hiểu rõ ý của bạn. Bạn có thể diễn đạt lại rõ hơn hoặc bấm chọn một trong các nội dung cần hỗ trợ dưới đây nhé:"
       buttons:
-        - title: "Tìm hiểu ngành học 📚"
+        - title: "📚 Tìm hiểu ngành học"
           payload: "Tư vấn giúp mình ngành học"
-        - title: "Đăng ký nguyện vọng 📝"
+        - title: "📝 Đăng ký nguyện vọng"
           payload: "/dang_ky_nguyen_vong"
 
 actions:

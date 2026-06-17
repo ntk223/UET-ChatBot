@@ -355,8 +355,8 @@ class ActionCustomFallback(Action):
         dispatcher.utter_message(
             text="Xin lỗi, mình chưa hiểu rõ ý của bạn. Bạn có thể diễn đạt lại rõ hơn hoặc bấm chọn một trong các nội dung cần hỗ trợ dưới đây nhé:",
             buttons=[
-                {"title": "Tìm hiểu ngành học 📚", "payload": "Tư vấn giúp mình ngành học"},
-                {"title": "Đăng ký nguyện vọng 📝", "payload": "/dang_ky_nguyen_vong"}
+                {"title": "📚 Tìm hiểu ngành học", "payload": "Tư vấn giúp mình ngành học"},
+                {"title": "📝 Đăng ký nguyện vọng", "payload": "/dang_ky_nguyen_vong"}
             ]
         )
         return []
@@ -375,13 +375,13 @@ class ActionSubmitSupportForm(Action):
         
         if success:
             dispatcher.utter_message(
-                text=f"✉️ **Đã gửi yêu cầu hỗ trợ thành công!**\n"
+                text=f"✅ **Đã gửi yêu cầu hỗ trợ thành công!**\n"
                      f"Vấn đề bạn đang gặp phải: *\"{support_issue}\"* đã được chuyển tiếp đến tư vấn viên tuyển sinh.\n"
                      f"Chúng tôi sẽ liên hệ lại hỗ trợ bạn sớm nhất có thể. Cảm ơn bạn!"
             )
         else:
             dispatcher.utter_message(
-                text=f"✉️ **Đã tiếp nhận yêu cầu hỗ trợ!**\n"
+                text=f"✅ **Đã tiếp nhận yêu cầu hỗ trợ!**\n"
                      f"Vấn đề: *\"{support_issue}\"* đã được gửi thành công. Tư vấn viên sẽ phản hồi bạn sớm nhất có thể!"
             )
             
