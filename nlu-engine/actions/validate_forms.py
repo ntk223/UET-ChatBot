@@ -273,6 +273,13 @@ class ValidateHsaForm(SmartValidationMixin, FormValidationAction):
         tracker: Tracker, domain: DomainDict,
     ) -> Dict[Text, Any]:
         result = _validate_chosen_major(slot_value, dispatcher)
+        if result:
+            from .db_helper import check_duplicate_registration
+            if check_duplicate_registration(tracker.sender_id, result):
+                dispatcher.utter_message(
+                    text="⚠️ Bạn đã đăng ký nguyện vọng xét tuyển vào ngành này rồi (hoặc đang có hồ sơ chờ duyệt). Vui lòng chọn một ngành học khác:"
+                )
+                return {"chosen_major": None}
         return {"chosen_major": result}
 
     def validate_hsa_id(
@@ -358,6 +365,13 @@ class ValidateIeltsForm(SmartValidationMixin, FormValidationAction):
         tracker: Tracker, domain: DomainDict,
     ) -> Dict[Text, Any]:
         result = _validate_chosen_major(slot_value, dispatcher)
+        if result:
+            from .db_helper import check_duplicate_registration
+            if check_duplicate_registration(tracker.sender_id, result):
+                dispatcher.utter_message(
+                    text="⚠️ Bạn đã đăng ký nguyện vọng xét tuyển vào ngành này rồi (hoặc đang có hồ sơ chờ duyệt). Vui lòng chọn một ngành học khác:"
+                )
+                return {"chosen_major": None}
         return {"chosen_major": result}
 
     def validate_ielts_score(
@@ -456,6 +470,13 @@ class ValidateDirectForm(SmartValidationMixin, FormValidationAction):
         tracker: Tracker, domain: DomainDict,
     ) -> Dict[Text, Any]:
         result = _validate_chosen_major(slot_value, dispatcher)
+        if result:
+            from .db_helper import check_duplicate_registration
+            if check_duplicate_registration(tracker.sender_id, result):
+                dispatcher.utter_message(
+                    text="⚠️ Bạn đã đăng ký nguyện vọng xét tuyển vào ngành này rồi (hoặc đang có hồ sơ chờ duyệt). Vui lòng chọn một ngành học khác:"
+                )
+                return {"chosen_major": None}
         return {"chosen_major": result}
 
     def validate_award_name(
@@ -593,6 +614,13 @@ class ValidateThptqgForm(SmartValidationMixin, FormValidationAction):
         tracker: Tracker, domain: DomainDict,
     ) -> Dict[Text, Any]:
         result = _validate_chosen_major(slot_value, dispatcher)
+        if result:
+            from .db_helper import check_duplicate_registration
+            if check_duplicate_registration(tracker.sender_id, result):
+                dispatcher.utter_message(
+                    text="⚠️ Bạn đã đăng ký nguyện vọng xét tuyển vào ngành này rồi (hoặc đang có hồ sơ chờ duyệt). Vui lòng chọn một ngành học khác:"
+                )
+                return {"chosen_major": None}
         return {"chosen_major": result}
 
     def validate_thptqg_block(

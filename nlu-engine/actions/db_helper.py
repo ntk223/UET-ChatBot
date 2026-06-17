@@ -479,6 +479,41 @@ def save_support_request(sender_id, issue_description):
         print(f"Error in save_support_request: {e}")
         return False
 
+def check_duplicate_registration(sender_id, chosen_major):
+    if not sender_id or "@" not in sender_id:
+        return False
+    if not chosen_major:
+        return False
+    major_code = find_major_code(chosen_major)
+    if not major_code:
+        return False
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        
+        # Get user_id by email
+        cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (sender_id,))
+        row = cursor.fetchone()
+        if not row:
+            cursor.close()
+            conn.close()
+            return False
+            
+        user_id = row[0]
+        
+        # Check if user already registered for this major
+        cursor.execute(f"SELECT COUNT(*) FROM candidates WHERE user_id = {placeholder} AND chosen_major_code = {placeholder}", (user_id, major_code))
+        count = cursor.fetchone()[0]
+        
+        cursor.close()
+        conn.close()
+        return count > 0
+    except Exception as e:
+        print(f"Error in check_duplicate_registration: {e}")
+        return False
+
 # Auto-run database schema setup and migrations
 init_db()
+
 
