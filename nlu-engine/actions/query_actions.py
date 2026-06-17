@@ -13,7 +13,7 @@ from typing import Any, Text, Dict, List, Optional
 from rasa_sdk import Action, Tracker
 from rasa_sdk.events import SlotSet
 from rasa_sdk.executor import CollectingDispatcher
-from .db_helper import get_db_connection, get_db_cursor
+from .db_helper import get_db_connection, get_db_cursor, save_support_request
 
 
 # ─── Helper: trích entity ngành từ tin nhắn hiện tại ──────────────────────
@@ -309,3 +309,80 @@ class ActionQueryBenchmarkByMajor(Action):
             print(f"Error in ActionQueryBenchmarkByMajor: {e}")
             dispatcher.utter_message(text="Hệ thống tra cứu đang bận, vui lòng thử lại sau!")
             return []
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Action: Fallback tùy biến (Xử lý khi không hiểu ý người dùng)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ActionCustomFallback(Action):
+    def name(self) -> Text:
+        return "action_custom_fallback"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        # Đếm số lần fallback liên tiếp trong lịch sử hội thoại (luồng tự do)
+        fallback_count = 1  # Tính cả lần fallback hiện tại đang chạy
+        
+        for event in reversed(tracker.events):
+            if event.get("event") == "action":
+                action_name = event.get("name")
+                if action_name == "action_listen":
+                    continue
+                if action_name in ["action_custom_fallback", "action_default_fallback", "utter_default"]:
+                    fallback_count += 1
+                else:
+                    # Gặp một action bình thường khác -> ngắt chuỗi fallback liên tiếp
+                    break
+        
+        # Nếu đang trong form (vòng lặp điền hồ sơ) thì không áp dụng luật nói chuyện tự do này
+        in_form = tracker.active_loop.get("name") is not None
+        
+        # Nếu ở luồng tự do và bị fallback >= 3 lần liên tiếp
+        if not in_form and fallback_count >= 3:
+            dispatcher.utter_message(
+                text="⚠️ **Nhập sai quá 3 lần liên tiếp**\n"
+                     "Hệ thống nhận thấy bạn đang gặp khó khăn khi điền hồ sơ. "
+                     "Bạn có thể kết nối với Fanpage Tuyển sinh của trường hoặc gặp tư vấn viên trực tiếp để được hỗ trợ.",
+                buttons=[
+                    {"title": "💬 Fanpage Tuyển sinh", "url": "https://www.facebook.com/groups/426349504198734"},
+                    {"title": "🧑‍💼 Gặp tư vấn viên", "payload": "/gap_tu_van_vien"},
+                    {"title": "🔄 Đăng ký lại từ đầu", "payload": "/dang_ky_nguyen_vong"}
+                ]
+            )
+            return []
+
+        # Ngược lại, hoặc nếu đang trong form, trả về phản hồi fallback mặc định
+        dispatcher.utter_message(
+            text="Xin lỗi, mình chưa hiểu rõ ý của bạn. Bạn có thể diễn đạt lại rõ hơn hoặc bấm chọn một trong các nội dung cần hỗ trợ dưới đây nhé:",
+            buttons=[
+                {"title": "Tìm hiểu ngành học 📚", "payload": "Tư vấn giúp mình ngành học"},
+                {"title": "Đăng ký nguyện vọng 📝", "payload": "/dang_ky_nguyen_vong"}
+            ]
+        )
+        return []
+
+
+class ActionSubmitSupportForm(Action):
+    def name(self) -> Text:
+        return "action_submit_support_form"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        support_issue = tracker.get_slot("support_issue")
+        sender_id = tracker.sender_id
+        
+        # Lưu vào cơ sở dữ liệu
+        success = save_support_request(sender_id, support_issue)
+        
+        if success:
+            dispatcher.utter_message(
+                text=f"✉️ **Đã gửi yêu cầu hỗ trợ thành công!**\n"
+                     f"Vấn đề bạn đang gặp phải: *\"{support_issue}\"* đã được chuyển tiếp đến tư vấn viên tuyển sinh.\n"
+                     f"Chúng tôi sẽ liên hệ lại hỗ trợ bạn sớm nhất có thể. Cảm ơn bạn!"
+            )
+        else:
+            dispatcher.utter_message(
+                text=f"✉️ **Đã tiếp nhận yêu cầu hỗ trợ!**\n"
+                     f"Vấn đề: *\"{support_issue}\"* đã được gửi thành công. Tư vấn viên sẽ phản hồi bạn sớm nhất có thể!"
+            )
+            
+        return [SlotSet("support_issue", None)]

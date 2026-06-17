@@ -73,7 +73,7 @@ class SmartValidationMixin:
                      "Hệ thống nhận thấy bạn đang gặp khó khăn khi điền hồ sơ. "
                      "Bạn có thể kết nối với Fanpage Tuyển sinh của trường hoặc gặp tư vấn viên trực tiếp để được hỗ trợ.",
                 buttons=[
-                    {"title": "💬 Fanpage Tuyển sinh", "url": "https://www.facebook.com/kcn.uet.vnu"},
+                    {"title": "💬 Fanpage Tuyển sinh", "url": "https://www.facebook.com/groups/426349504198734"},
                     {"title": "🧑‍💼 Gặp tư vấn viên", "payload": "/gap_tu_van_vien"},
                     {"title": "🔄 Đăng ký lại từ đầu", "payload": "/dang_ky_nguyen_vong"}
                 ]

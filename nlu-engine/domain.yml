@@ -13,6 +13,7 @@ intents:
   - chon_ptxt_thptqg
   - inform
   - cancel
+  - gap_tu_van_vien
 
 entities:
   - nganh_hoc
@@ -177,6 +178,14 @@ slots:
     influence_conversation: false
     mappings:
       - type: custom
+  support_issue:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: support_form
+            requested_slot: support_issue
 
 forms:
   hsa_form:
@@ -227,6 +236,12 @@ forms:
       - ielts_evidence_url
       - confirm_registration
 
+  support_form:
+    ignored_intents:
+      - cancel
+    required_slots:
+      - support_issue
+
 responses:
   utter_greet:
     - text: "Xin chào! Mình là Chatbot tuyển sinh trường ĐH Công nghệ (UET). Bạn muốn tìm hiểu ngành học hay đăng ký nguyện vọng xét tuyển trực tuyến luôn?"
@@ -252,6 +267,8 @@ responses:
     - text: "Vui lòng nhập Họ và tên đầy đủ của thí sinh:"
   utter_ask_phone_number:
     - text: "Vui lòng nhập Số điện thoại liên hệ chính thức:"
+  utter_ask_support_issue:
+    - text: "Vui lòng nhập vấn đề/câu hỏi bạn đang gặp phải cần tư vấn viên hỗ trợ:"
   utter_ask_hsa_id:
     - text: "Nhập số báo danh kì thi HSA của bạn:"
   utter_ask_hsa_score:
@@ -316,6 +333,8 @@ actions:
   - validate_ielts_form
   - validate_direct_form
   - validate_thptqg_form
+  - action_custom_fallback
+  - action_submit_support_form
 
 session_config:
   session_expiration_time: 60

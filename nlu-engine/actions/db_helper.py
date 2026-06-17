@@ -181,6 +181,14 @@ def init_db():
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
             )
             """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS support_requests (
+                id SERIAL PRIMARY KEY,
+                sender_id VARCHAR(100) NOT NULL,
+                issue_description TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
         else:
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS admission_thptqg (
@@ -217,6 +225,14 @@ def init_db():
                 award_name TEXT NOT NULL,
                 evidence_url TEXT NOT NULL,
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
+            )
+            """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS support_requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sender_id TEXT NOT NULL,
+                issue_description TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """)
             
@@ -449,6 +465,19 @@ def verify_candidate_profile(candidate_id):
         print(f"Error in verify_candidate_profile: {e}")
         return False
 
+def save_support_request(sender_id, issue_description):
+    try:
+        conn, conn_type = get_db_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if conn_type == "postgres" else "?"
+        cursor.execute(f"INSERT INTO support_requests (sender_id, issue_description) VALUES ({placeholder}, {placeholder})", (sender_id, issue_description))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error in save_support_request: {e}")
+        return False
 
 # Auto-run database schema setup and migrations
 init_db()

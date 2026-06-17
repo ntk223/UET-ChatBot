@@ -8,10 +8,11 @@ export function normalizeButtons(buttons) {
   }
 
   return buttons
-    .filter((button) => button && (button.title || button.payload))
+    .filter((button) => button && (button.title || button.payload || button.url))
     .map((button) => ({
       title: String(button.title || "Select"),
       payload: button.payload || null,
+      url: button.url || null,
     }));
 }
 

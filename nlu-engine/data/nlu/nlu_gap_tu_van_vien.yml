@@ -1,0 +1,21 @@
+version: "3.1"
+
+nlu:
+  - intent: gap_tu_van_vien
+    examples: |
+      - gặp tư vấn viên
+      - gap tu van vien
+      - tôi muốn gặp tư vấn viên
+      - cho tôi gặp tư vấn viên trực tiếp
+      - chat với tư vấn viên
+      - nói chuyện với tư vấn viên
+      - gặp support
+      - hỗ trợ trực tiếp
+      - gặp trợ giúp viên
+      - tư vấn viên trực tiếp
+      - cho mình gặp tư vấn viên với
+      - kết nối với tư vấn viên
+      - kết nối tư vấn viên
+      - gặp trợ giúp trực tuyến
+      - chat trực tiếp với tư vấn viên
+      - /gap_tu_van_vien

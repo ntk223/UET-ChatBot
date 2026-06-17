@@ -3,6 +3,8 @@ from .query_actions import (
     ActionAskChosenMajor,
     ActionQueryTuitionByMajor,
     ActionQueryBenchmarkByMajor,
+    ActionCustomFallback,
+    ActionSubmitSupportForm,
 )
 from .submit_actions import (
     ActionSubmitThptqgForm,
@@ -23,6 +25,8 @@ __all__ = [
     "ActionAskChosenMajor",
     "ActionQueryTuitionByMajor",
     "ActionQueryBenchmarkByMajor",
+    "ActionCustomFallback",
+    "ActionSubmitSupportForm",
     # Submit actions
     "ActionSubmitThptqgForm",
     "ActionSubmitHsaForm",
