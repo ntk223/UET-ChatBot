@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./styles.css";
 import ChatWindow from "./components/ChatWindow.jsx";
 import FlowchartVisualizer from "./components/FlowchartVisualizer.jsx";
@@ -41,9 +41,16 @@ export default function App() {
   const [rightColTab, setRightColTab] = useState("flowchart"); // 'flowchart' | 'aspirations'
   const [prevAspirationsCount, setPrevAspirationsCount] = useState(0);
   const [showSubmissionCelebration, setShowSubmissionCelebration] = useState(false);
+  const isInitialLoad = useRef(true); // bỏ qua lần fetch đầu tiên khi refresh
 
   // Tự động chuyển tab khi có nguyện vọng mới
   useEffect(() => {
+    if (isInitialLoad.current) {
+      // Lần đầu mount: cập nhật count nhưng không hiện toast
+      isInitialLoad.current = false;
+      setPrevAspirationsCount(candidateAspirations.length);
+      return;
+    }
     if (candidateAspirations.length > prevAspirationsCount && prevAspirationsCount >= 0) {
       if (candidateAspirations.length > 0) {
         setShowSubmissionCelebration(true);

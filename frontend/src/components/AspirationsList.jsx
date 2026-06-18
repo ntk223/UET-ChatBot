@@ -1,4 +1,4 @@
-import { CheckCircle2, ClipboardList } from "lucide-react";
+import { CheckCircle2, ClipboardList, Clock } from "lucide-react";
 
 export default function AspirationsList({ candidateAspirations, verifyAspiration, cancelAspiration }) {
   return (
@@ -23,8 +23,10 @@ export default function AspirationsList({ candidateAspirations, verifyAspiration
                 <span className="asp-id">
                   {asp.id.toString().startsWith("UET-") ? asp.id : `UET-${asp.id}`}
                 </span>
-                <span className={`status-badge ${asp.is_verified ? "verified" : "unverified"}`}>
-                  {asp.is_verified ? "Đã xác minh ✅" : "Chờ xác minh ⏳"}
+                <span className={`status-badge flex-align ${asp.is_verified ? "verified" : "unverified"}`}>
+                  {asp.is_verified
+                    ? <><CheckCircle2 size={12} /><span>Đã xác minh</span></>
+                    : <><Clock size={12} /><span>Chờ xác minh</span></>}
                 </span>
               </div>
               <div className="asp-card-body">

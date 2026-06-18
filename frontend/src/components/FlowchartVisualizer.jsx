@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, AlertCircle, ArrowRight, CornerDownRight, HelpCircle } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, ArrowRight, CornerDownRight, HelpCircle, Lightbulb } from "lucide-react";
 
 export default function FlowchartVisualizer({ slots, currentFlow, nextSlotToCollect, getSlotLabel }) {
   // Định nghĩa các bước cụ thể của từng luồng
@@ -73,7 +73,7 @@ export default function FlowchartVisualizer({ slots, currentFlow, nextSlotToColl
             <div className="flow-connector-vertical"></div>
 
             <div className="flow-node decision-node">
-              <div className="node-icon">❓</div>
+              <div className="node-icon"><HelpCircle size={16} /></div>
               <div className="node-content">
                 <strong>Người dùng có nhu cầu Đăng ký xét tuyển?</strong>
                 <p>Kích hoạt bằng các câu lệnh: "đăng ký học", "nộp hồ sơ"...</p>
@@ -106,8 +106,9 @@ export default function FlowchartVisualizer({ slots, currentFlow, nextSlotToColl
               </div>
             </div>
             
-            <p className="flowchart-tip">
-              💡 Hãy nhắn <strong>"Đăng ký nguyện vọng"</strong> để kích hoạt một trong các luồng xử lý tự động của hệ thống!
+            <p className="flowchart-tip flex-align" style={{ gap: '6px' }}>
+              <Lightbulb size={15} className="icon-orange" style={{ flexShrink: 0 }} />
+              <span>Hãy nhắn <strong>"Đăng ký nguyện vọng"</strong> để kích hoạt một trong các luồng xử lý tự động của hệ thống!</span>
             </p>
           </div>
         ) : (

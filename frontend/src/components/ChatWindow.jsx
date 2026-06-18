@@ -49,8 +49,8 @@ export default function ChatWindow({
               </>
             ) : (
               <>
-                <History size={12} />
-                <span>Xem lịch sử</span>
+                {/* <History size={12} />
+                <span>Xem lịch sử</span> */}
               </>
             )}
           </button>

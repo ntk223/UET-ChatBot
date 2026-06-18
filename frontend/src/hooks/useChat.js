@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createMessage, normalizeButtons } from "../utils/messages.js";
+import { parseEmojiText } from "../utils/emojiMapper.js";
 
 // Rasa-only chat hook — LLM và local simulator đã được loại bỏ
 
@@ -46,6 +47,74 @@ export function useChat() {
       .then(() => setRasaStatus("online"))
       .catch(() => setRasaStatus("offline"));
   }, []);
+
+  // ─── Load lịch sử hội thoại từ Rasa tracker (Redis) ─────────────────
+  const loadConversationFromTracker = useCallback(async (currentSenderId) => {
+    try {
+      const resp = await fetch(`http://localhost:5005/conversations/${currentSenderId}/tracker`);
+      if (!resp.ok) {
+        newChat();
+        return;
+      }
+      const tracker = await resp.json();
+      const events = tracker?.events || [];
+
+      // Parse events thành messages
+      const reconstructed = [];
+      for (const ev of events) {
+        if (ev.event === "user" && ev.text && !ev.text.startsWith("/")) {
+          reconstructed.push(createMessage({ from: "user", text: ev.text, timestamp: ev.timestamp ? new Date(ev.timestamp * 1000).toISOString() : undefined }));
+        } else if (ev.event === "bot" && (ev.text || ev.data?.buttons?.length > 0)) {
+          const buttons = normalizeButtons(ev.data?.buttons || []);
+          reconstructed.push(createMessage({ from: "bot", text: ev.text || "", buttons, timestamp: ev.timestamp ? new Date(ev.timestamp * 1000).toISOString() : undefined }));
+        }
+      }
+
+      if (reconstructed.length === 0) {
+        newChat();
+        return;
+      }
+
+      // Khôi phục slots và flow từ tracker
+      const trackerSlots = tracker?.slots || {};
+      const activeLoopName = tracker?.active_loop?.name;
+      const updatedSlots = { ...INITIAL_SLOTS };
+      Object.keys(INITIAL_SLOTS).forEach((key) => {
+        if (trackerSlots[key] !== undefined && trackerSlots[key] !== null) {
+          updatedSlots[key] = trackerSlots[key];
+        }
+      });
+      setSlots(updatedSlots);
+
+      let flow = null;
+      if (activeLoopName === "thptqg_form") flow = "THPTQG";
+      else if (activeLoopName === "hsa_form") flow = "HSA";
+      else if (activeLoopName === "ielts_form") flow = "IELTS";
+      else if (activeLoopName === "direct_form") flow = "TUYEN_THANG";
+      setCurrentFlow(flow);
+      setNextSlotToCollect(trackerSlots["requested_slot"] || null);
+
+      setMessages(reconstructed);
+    } catch (e) {
+      console.warn("Failed to load tracker from Redis:", e);
+      newChat();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Xóa chat khi user thay đổi (login / logout / switch account) ───────
+  const prevUserEmailRef = useRef(loggedInCandidate?.email ?? null);
+  useEffect(() => {
+    const currEmail = loggedInCandidate?.email ?? null;
+    if (prevUserEmailRef.current === currEmail) return;
+    prevUserEmailRef.current = currEmail;
+    if (currEmail) {
+      // Đăng nhập: load lịch sử từ Rasa tracker Redis
+      loadConversationFromTracker(currEmail);
+    } else {
+      // Đăng xuất: bắt đầu phiên mới
+      newChat();
+    }
+  }, [loggedInCandidate?.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Helper: get sender id ────────────────────────────────────────────────
   const getSenderId = useCallback(() => {
@@ -219,9 +288,10 @@ export function useChat() {
     newChat();
   }, [newChat]);
 
-  // Boot on mount
+  // Boot on mount: load từ Rasa tracker Redis theo sender_id
   useEffect(() => {
-    newChat();
+    const currentSenderId = getSenderId();
+    loadConversationFromTracker(currentSenderId);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Rasa API call ────────────────────────────────────────────────────────
@@ -341,8 +411,10 @@ export function useChat() {
   const sendPayload = useCallback(
     (button) => {
       if (!button) return;
+      // Strip emoji khỏi title trước khi hiển thị trong chat bubble phía user
+      const { cleanedText } = parseEmojiText(button.title || "");
       sendMessage({
-        text: button.title || "Select",
+        text: cleanedText || button.title || "Select",
         payloadValue: button.payload || null,
       });
     },
